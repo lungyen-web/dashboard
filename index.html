@@ -6,360 +6,178 @@
 <title>龍巖 — 禮儀案件績效儀表板</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <style>
-/* ════════ RESET & BASE ════════ */
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-:root {
-  --bg:        #0a0d14;
-  --bg2:       #111620;
-  --bg3:       #171d2b;
-  --bg4:       #1d2438;
-  --border:    #232b3e;
-  --border2:   #2c3650;
-  --gold:      #d4a843;
-  --gold-dim:  rgba(212,168,67,.15);
-  --red:       #b84040;
-  --red-dim:   rgba(184,64,64,.15);
-  --green:     #3a9e72;
-  --green-dim: rgba(58,158,114,.12);
-  --blue:      #3a7ec6;
-  --blue-dim:  rgba(58,126,198,.12);
-  --text:      #dce2f0;
-  --text2:     #7a8499;
-  --text3:     #3e4a62;
-  --mono:      'DM Mono', monospace;
-  --sans:      'Noto Sans TC', sans-serif;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0d14;--bg2:#111620;--bg3:#171d2b;--bg4:#1d2438;
+  --border:#232b3e;--border2:#2c3650;
+  --gold:#d4a843;--gold-dim:rgba(212,168,67,.15);
+  --red:#b84040;--red-dim:rgba(184,64,64,.15);
+  --green:#3a9e72;--green-dim:rgba(58,158,114,.12);
+  --blue:#3a7ec6;--blue-dim:rgba(58,126,198,.12);
+  --text:#dce2f0;--text2:#7a8499;--text3:#3e4a62;
+  --mono:'DM Mono',monospace;--sans:'Noto Sans TC',sans-serif;
 }
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+.wrap{max-width:1300px;margin:0 auto;padding:0 28px 80px}
 
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 20px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:14px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo-box{width:120px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-box img{width:100%;height:100%;object-fit:contain;display:block}
+.brand-text h1{font-size:15px;font-weight:700;letter-spacing:.05em}
+.brand-text p{font-size:11px;color:var(--text2);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--mono);color:var(--gold)}
+.icon-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--sans);display:flex;align-items:center;gap:6px}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn.spin svg{animation:rot .9s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
 
+/* SETTINGS */
+.settings-toggle{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3);cursor:pointer;padding:5px 0;margin-bottom:8px;user-select:none;transition:color .2s}
+.settings-toggle:hover{color:var(--text2)}
+.stg-arrow{transition:transform .25s;display:flex}
+.stg-arrow.open{transform:rotate(90deg)}
+.settings{background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;padding:20px 22px;margin-bottom:24px;overflow:hidden}
+.settings-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:680px){.settings-row{grid-template-columns:1fr}}
+.field label{display:block;font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.field input{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;font-size:12px;font-family:var(--mono);color:var(--text);outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.apply-btn{background:var(--gold);border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:500;color:#0a0d14;cursor:pointer;white-space:nowrap;font-family:var(--sans);transition:opacity .2s}
+.apply-btn:hover{opacity:.82}
+.status-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3);margin-top:10px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.err{background:var(--red)}
+.dot.busy{background:var(--gold);animation:blink 1s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-html { scroll-behavior: smooth; }
+/* CONTROLS */
+.controls-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.view-switch{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:4px;width:fit-content}
+.vs-btn{padding:7px 22px;border-radius:6px;font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--text2)}
+.vs-btn.active{background:var(--red);color:#fff;font-weight:500}
+.metric-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.mt-btn{padding:6px 16px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .2s;border:1px solid var(--border);background:var(--bg2);color:var(--text2)}
+.mt-btn:hover{border-color:var(--border2);color:var(--text)}
+.mt-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
 
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* MONTH TABS */
+.month-tabs{display:flex;gap:5px;margin-bottom:26px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.month-tabs::-webkit-scrollbar{display:none}
+.mo-btn{flex-shrink:0;padding:6px 14px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:background-color .2s,border-color .2s,color .2s}
+.mo-btn:hover{color:var(--text);border-color:var(--border2)}
+.mo-btn.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
 
-/* grain */
-body::after {
-  content:'';
-  position:fixed; inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
-  pointer-events:none; z-index:9999;
-}
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:20px 18px;cursor:default;transition:all .25s}
+.kpi:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px)}
+.kpi-lbl{font-size:11px;color:var(--text2);margin-bottom:9px;letter-spacing:.05em}
+.kpi-val{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:6px}
+.kpi-val.gold{color:var(--gold)}.kpi-val.red{color:#e05555}.kpi-val.green{color:var(--green)}.kpi-val.blue{color:var(--blue)}.kpi-val.white{color:var(--text)}
+.kpi-sub{font-size:10px;color:var(--text3)}
 
-/* ════════ LAYOUT ════════ */
-.wrap { max-width:1200px; margin:0 auto; padding:0 28px 80px; }
+/* CHART */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:26px 22px;margin-bottom:18px}
+.chart-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.chart-title{font-size:13px;font-weight:500;padding-top:2px}
+.chart-head-right{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;flex-wrap:wrap;max-width:580px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;transition:color .15s}
+.leg-item:hover{color:var(--text)}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.leg-line{width:18px;height:2px;flex-shrink:0;border-radius:1px}
+.chart-outer{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.chart-outer::-webkit-scrollbar{height:4px}
+.chart-outer::-webkit-scrollbar-track{background:var(--bg)}
+.chart-outer::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+#chartSvg{display:block}
 
-/* ════════ TOPBAR ════════ */
-.topbar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:22px 0 20px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:30px;
-  flex-wrap:wrap; gap:14px;
-}
+/* CHART FILTER DROPDOWN */
+.cfd-wrap{position:relative;flex-shrink:0;align-self:flex-start}
+.cfd-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 11px;font-size:11px;font-family:var(--sans);color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;min-width:110px;justify-content:space-between}
+.cfd-btn:hover,.cfd-btn.open{border-color:var(--gold);color:var(--gold)}
+.cfd-chev{transition:transform .2s;display:inline-block;font-size:9px;opacity:.7}
+.cfd-chev.open{transform:rotate(180deg)}
+.cfd-drop{position:absolute;top:calc(100% + 6px);right:0;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px;min-width:210px;max-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.55);transform-origin:top right;display:none}
+.cfd-drop.open{display:block}
+.cfd-search-wrap{margin-bottom:7px}
+.cfd-search{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;font-size:12px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .2s;display:block}
+.cfd-search:focus{border-color:var(--gold)}
+.cfd-list{max-height:210px;overflow-y:auto;scrollbar-width:thin}
+.cfd-list::-webkit-scrollbar{width:3px}
+.cfd-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.cfd-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:5px;font-size:12px;cursor:pointer;transition:background .1s;color:var(--text2);user-select:none}
+.cfd-item:hover{background:var(--bg4);color:var(--text)}
+.cfd-item.checked{color:var(--text)}
+.cfd-item.cfd-all{border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:8px;font-weight:500;color:var(--text)}
+.cfd-cb{width:13px;height:13px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .12s;color:transparent;background:transparent}
+.cfd-item.checked .cfd-cb{background:var(--red);border-color:var(--red);color:#fff}
+.cfd-footer{font-size:10px;color:var(--text3);margin-top:7px;padding-top:6px;border-top:1px solid var(--border);text-align:right;min-height:16px}
 
-.brand { display:flex; align-items:center; gap:14px; }
+/* D3 elements */
+.bar{cursor:pointer}
+.bar.dimmed{opacity:.2}
+.line-path{fill:none;cursor:pointer}
+.line-path.dimmed{opacity:.15}
+.dot-circle{cursor:pointer}
+.dot-circle.dimmed{opacity:.15}
+.axis text{font-family:'DM Mono',monospace;font-size:10px;fill:#7a8499}
+.axis line,.axis path{stroke:#232b3e}
+.grid line{stroke:#232b3e;stroke-width:.5;stroke-dasharray:2,3}
+.grid path{stroke:none}
 
-.logo-box {
-  width:44px; height:44px;
-  background:linear-gradient(135deg,var(--red),#7a2020);
-  border-radius:9px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:20px; font-weight:700; color:#fff;
-  box-shadow:0 0 22px rgba(184,64,64,.35);
-  flex-shrink:0;
-}
+/* TOOLTIP */
+.d3-tip{position:fixed;pointer-events:none;background:#1d2438;border:1px solid #2c3650;border-radius:8px;padding:10px 14px;font-family:'Noto Sans TC',sans-serif;font-size:12px;color:#dce2f0;z-index:1000;opacity:0;max-width:230px;box-shadow:0 4px 20px rgba(0,0,0,.45);transition:opacity .12s}
+.d3-tip.show{opacity:1}
+.d3-tip-title{font-size:10px;color:#7a8499;margin-bottom:6px;letter-spacing:.04em}
+.d3-tip-row{display:flex;align-items:center;gap:6px;margin:3px 0}
+.d3-tip-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.d3-tip-name{flex:1;color:#7a8499;font-size:11px}
+.d3-tip-val{font-family:'DM Mono',monospace;color:#dce2f0;font-size:12px}
 
-.brand-text h1 { font-size:15px; font-weight:700; letter-spacing:.05em; }
-.brand-text p  { font-size:11px; color:var(--text2); margin-top:2px; }
+/* TABLE */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.table-head-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.table-title{font-size:13px;font-weight:500}
+.search-input{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);font-family:var(--sans);outline:none;width:160px;transition:border-color .2s}
+.search-input:focus{border-color:var(--gold)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--bg3);padding:9px 14px;text-align:right;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color .2s;white-space:nowrap}
+.tbl th:first-child{text-align:left}
+.tbl th:hover{color:var(--gold)}
+.tbl th.sa::after{content:' ↑';color:var(--gold)}
+.tbl th.sd::after{content:' ↓';color:var(--gold)}
+.tbl td{padding:8px 14px;text-align:right;border-bottom:1px solid rgba(35,43,62,.5);font-family:var(--mono);font-size:12px;color:var(--text2);transition:background .15s}
+.tbl td:first-child{text-align:left;font-family:var(--sans);font-size:12px;color:var(--text);font-weight:500}
+.tbl tr:hover td{background:var(--bg3)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.hi{color:var(--gold)}.tbl td.up{color:var(--green)}.tbl td.dn{color:#e05555}
+.tbl tfoot td{background:var(--bg3);font-weight:700;color:var(--text);font-family:var(--mono);border-top:1px solid var(--border2);border-bottom:none}
+.tbl tfoot td:first-child{font-family:var(--sans)}
 
-.topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-
-.tag {
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:6px;
-  padding:5px 12px;
-  font-size:12px;
-  font-family:var(--mono);
-  color:var(--gold);
-}
-
-.icon-btn {
-  background:var(--bg3); border:1px solid var(--border2);
-  border-radius:6px; padding:6px 12px;
-  font-size:12px; color:var(--text2);
-  cursor:pointer; transition:all .2s;
-  font-family:var(--sans);
-  display:flex; align-items:center; gap:6px;
-}
-.icon-btn:hover { border-color:var(--gold); color:var(--gold); }
-.icon-btn svg { transition:transform .5s; }
-.icon-btn.spin svg { animation:rot .9s linear infinite; }
-@keyframes rot { to { transform:rotate(360deg); } }
-
-/* ════════ SETTINGS PANEL ════════ */
-.settings {
-  background:var(--bg2);
-  border:1px dashed var(--border2);
-  border-radius:12px;
-  padding:20px 22px;
-  margin-bottom:24px;
-  animation:up .35s ease both;
-}
-
-.settings-title {
-  font-size:12px; color:var(--text2); margin-bottom:14px;
-  display:flex; align-items:center; gap:7px; letter-spacing:.04em;
-}
-
-.settings-row {
-  display:grid; grid-template-columns:1fr 1fr auto;
-  gap:10px; align-items:end;
-}
-
-@media(max-width:680px){ .settings-row { grid-template-columns:1fr; } }
-
-.field label {
-  display:block; font-size:10px; color:var(--text3);
-  margin-bottom:5px; letter-spacing:.06em; text-transform:uppercase;
-}
-
-.field input {
-  width:100%;
-  background:var(--bg4); border:1px solid var(--border2);
-  border-radius:7px; padding:8px 11px;
-  font-size:12px; font-family:var(--mono);
-  color:var(--text); outline:none;
-  transition:border-color .2s;
-}
-.field input:focus { border-color:var(--gold); }
-
-.apply-btn {
-  background:var(--gold); border:none;
-  border-radius:7px; padding:8px 20px;
-  font-size:13px; font-weight:500; color:#0a0d14;
-  cursor:pointer; white-space:nowrap;
-  font-family:var(--sans); transition:opacity .2s;
-}
-.apply-btn:hover { opacity:.82; }
-
-.status-row {
-  display:flex; align-items:center; gap:7px;
-  font-size:11px; color:var(--text3); margin-top:10px;
-}
-.dot { width:6px; height:6px; border-radius:50%; background:var(--text3); flex-shrink:0; }
-.dot.ok    { background:var(--green); box-shadow:0 0 6px var(--green); }
-.dot.err   { background:var(--red); }
-.dot.busy  { background:var(--gold); animation:blink 1s ease infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
-
-/* ════════ VIEW SWITCHER ════════ */
-.view-switch {
-  display:flex; gap:0; margin-bottom:22px;
-  background:var(--bg2); border:1px solid var(--border);
-  border-radius:9px; padding:4px; width:fit-content;
-}
-
-.vs-btn {
-  padding:7px 22px; border-radius:6px;
-  font-size:13px; font-family:var(--sans);
-  cursor:pointer; transition:all .2s;
-  border:none; background:transparent; color:var(--text2);
-}
-.vs-btn.active {
-  background:var(--red); color:#fff; font-weight:500;
-}
-
-/* ════════ METRIC TABS ════════ */
-.metric-tabs {
-  display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap;
-}
-
-.mt-btn {
-  padding:6px 16px; border-radius:6px;
-  font-size:12px; font-family:var(--sans);
-  cursor:pointer; transition:all .2s;
-  border:1px solid var(--border);
-  background:var(--bg2); color:var(--text2);
-}
-.mt-btn:hover { border-color:var(--border2); color:var(--text); }
-.mt-btn.active { border-color:var(--gold); color:var(--gold); background:var(--gold-dim); }
-
-/* ════════ MONTH TABS ════════ */
-.month-tabs {
-  display:flex; gap:5px; margin-bottom:26px;
-  overflow-x:auto; padding-bottom:3px; scrollbar-width:none;
-}
-.month-tabs::-webkit-scrollbar { display:none; }
-
-.mo-btn {
-  flex-shrink:0; padding:6px 14px;
-  border-radius:6px; font-size:12px;
-  font-family:var(--sans); cursor:pointer;
-  border:1px solid var(--border);
-  background:var(--bg2); color:var(--text2);
-  transition:all .2s;
-}
-.mo-btn:hover { color:var(--text); border-color:var(--border2); }
-.mo-btn.active { background:var(--red); border-color:var(--red); color:#fff; font-weight:500; }
-
-/* ════════ KPI STRIP ════════ */
-.kpi-strip {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:14px; margin-bottom:24px;
-}
-
-.kpi {
-  background:var(--bg2); border:1px solid var(--border);
-  border-radius:11px; padding:20px 18px;
-  transition:all .25s; animation:up .4s ease both;
-  cursor:default;
-}
-.kpi:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
-
-@keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-.kpi:nth-child(1){animation-delay:.04s}
-.kpi:nth-child(2){animation-delay:.08s}
-.kpi:nth-child(3){animation-delay:.12s}
-.kpi:nth-child(4){animation-delay:.16s}
-
-.kpi-lbl { font-size:11px; color:var(--text2); margin-bottom:9px; letter-spacing:.05em; }
-.kpi-val { font-size:30px; font-weight:700; font-family:var(--mono); line-height:1; margin-bottom:6px; }
-.kpi-val.gold  { color:var(--gold); }
-.kpi-val.red   { color:#e05555; }
-.kpi-val.green { color:var(--green); }
-.kpi-val.blue  { color:var(--blue); }
-.kpi-val.white { color:var(--text); }
-.kpi-sub { font-size:10px; color:var(--text3); }
-
-.prog { margin-top:10px; }
-.prog-bg { background:var(--bg); border-radius:3px; height:4px; overflow:hidden; }
-.prog-fill { height:100%; border-radius:3px; transition:width 1.1s cubic-bezier(.22,1,.36,1); }
-.prog-fill.green { background:var(--green); }
-.prog-fill.gold  { background:var(--gold); }
-.prog-fill.red   { background:var(--red); }
-
-/* ════════ CHART ════════ */
-.chart-card {
-  background:var(--bg2); border:1px solid var(--border);
-  border-radius:12px; padding:26px 22px;
-  margin-bottom:18px; animation:up .4s ease .2s both;
-}
-
-.chart-head {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:18px; flex-wrap:wrap; gap:10px;
-}
-
-.chart-title { font-size:13px; font-weight:500; }
-
-.legend { display:flex; gap:14px; flex-wrap:wrap; }
-.leg-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); }
-.leg-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
-
-.chart-wrap { position:relative; height:300px; }
-
-/* ════════ TABLE ════════ */
-.table-card {
-  background:var(--bg2); border:1px solid var(--border);
-  border-radius:12px; overflow:hidden;
-  margin-bottom:18px; animation:up .4s ease .28s both;
-}
-
-.table-head-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px 12px; border-bottom:1px solid var(--border);
-  flex-wrap:wrap; gap:8px;
-}
-
-.table-title { font-size:13px; font-weight:500; }
-
-.search-input {
-  background:var(--bg4); border:1px solid var(--border2);
-  border-radius:6px; padding:5px 10px;
-  font-size:12px; color:var(--text);
-  font-family:var(--sans); outline:none; width:160px;
-  transition:border-color .2s;
-}
-.search-input:focus { border-color:var(--gold); }
-
-.tbl { width:100%; border-collapse:collapse; font-size:12px; }
-
-.tbl th {
-  background:var(--bg3);
-  padding:9px 14px; text-align:right;
-  font-size:11px; font-weight:500;
-  color:var(--text2); letter-spacing:.04em;
-  border-bottom:1px solid var(--border);
-  cursor:pointer; user-select:none; transition:color .2s;
-  white-space:nowrap;
-}
-.tbl th:first-child { text-align:left; }
-.tbl th:hover { color:var(--gold); }
-.tbl th.sort-asc::after  { content:' ↑'; color:var(--gold); }
-.tbl th.sort-desc::after { content:' ↓'; color:var(--gold); }
-
-.tbl td {
-  padding:8px 14px; text-align:right;
-  border-bottom:1px solid rgba(35,43,62,.5);
-  font-family:var(--mono); font-size:12px;
-  color:var(--text2);
-  transition:background .15s;
-}
-.tbl td:first-child {
-  text-align:left; font-family:var(--sans);
-  font-size:12px; color:var(--text); font-weight:500;
-}
-.tbl tr:hover td { background:var(--bg3); }
-.tbl tr:last-child td { border-bottom:none; }
-
-.tbl td.hi  { color:var(--gold); }
-.tbl td.up  { color:var(--green); }
-.tbl td.dn  { color:#e05555; }
-
-.tbl tfoot td {
-  background:var(--bg3); font-weight:700;
-  color:var(--text); font-family:var(--mono);
-  border-top:1px solid var(--border2);
-  border-bottom:none;
-}
-.tbl tfoot td:first-child { font-family:var(--sans); }
-
-/* ════════ EMPTY / SKELETON ════════ */
-.empty {
-  padding:48px 20px; text-align:center;
-  color:var(--text3); font-size:13px;
-}
-
-.skel {
-  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
-  background-size:200% 100%;
-  animation:shim 1.4s infinite;
-  border-radius:5px; height:14px;
-}
-@keyframes shim { from{background-position:200% 0} to{background-position:-200% 0} }
-
-/* ════════ SCROLLBAR ════════ */
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:var(--bg); }
-::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:600px){.wrap{padding:0 14px 60px}.kpi-val{font-size:20px}.vs-btn{padding:7px 14px;font-size:12px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<!-- ── TOPBAR ── -->
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
-    <div class="logo-box">龍</div>
+    <div class="logo-box"><img src="logo.png" alt="龍巖股份有限公司"></div>
     <div class="brand-text">
       <h1>龍巖股份有限公司</h1>
       <p>禮儀案件績效儀表板</p>
@@ -377,60 +195,86 @@ body::after {
   </div>
 </div>
 
-<!-- ── SETTINGS ── -->
-<div class="settings">
-  <div class="settings-title">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/>
-    </svg>
-    Google Sheets 連線設定
+<!-- SETTINGS TOGGLE -->
+<div class="settings-toggle" onclick="toggleSettings()">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+  </svg>
+  Google Sheets 連線設定
+  <div class="stg-arrow" id="stgArrow">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
   </div>
+</div>
+<div class="settings" id="settingsPanel" style="display:none">
   <div class="settings-row">
     <div class="field">
       <label>Spreadsheet ID</label>
       <input id="inpId" type="text" placeholder="試算表網址中間那段 ID">
     </div>
     <div class="field">
-      <label>Sheet名稱（選填，預設自動）</label>
-      <input id="inpSheet" type="text" placeholder="服務處案件統計 / 禮儀師月統計">
+      <label>預設 Sheet（自動）</label>
+      <input type="text" value="服務處案件統計 / 禮儀師月統計" readonly style="opacity:.4;cursor:default">
     </div>
     <button class="apply-btn" onclick="applyAndLoad()">套用</button>
   </div>
   <div class="status-row">
     <div class="dot" id="dot"></div>
-    <span id="statusTxt">尚未設定 — 顯示範例資料</span>
+    <span id="statusTxt">準備同步資料</span>
   </div>
 </div>
 
-<!-- ── VIEW SWITCH ── -->
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+<!-- VIEW + METRIC -->
+<div class="controls-row">
   <div class="view-switch">
     <button class="vs-btn active" id="vsBranch" onclick="switchView('branch')">服務處</button>
-    <button class="vs-btn"        id="vsRitual" onclick="switchView('ritual')">禮儀師</button>
+    <button class="vs-btn" id="vsRitual" onclick="switchView('ritual')">禮儀師</button>
   </div>
   <div class="metric-tabs">
-    <button class="mt-btn active" onclick="switchMetric('cases',this)">接案量</button>
-    <button class="mt-btn"        onclick="switchMetric('close',this)">結案率</button>
-    <button class="mt-btn"        onclick="switchMetric('days',this)">平均結案天數</button>
+    <button class="mt-btn active" data-m="cases" onclick="switchMetric('cases')">接案量</button>
+    <button class="mt-btn" data-m="close" onclick="switchMetric('close')">結案率</button>
+    <button class="mt-btn" data-m="days" onclick="switchMetric('days')">平均結案天數</button>
   </div>
 </div>
 
-<!-- ── MONTH TABS ── -->
+<!-- MONTH TABS -->
 <div class="month-tabs" id="monthTabs"></div>
 
-<!-- ── KPI STRIP ── -->
-<div class="kpi-strip" id="kpiStrip"></div>
-
-<!-- ── BAR CHART ── -->
-<div class="chart-card">
-  <div class="chart-head">
-    <span class="chart-title" id="chartTitle">各月趨勢</span>
-    <div class="legend" id="chartLegend"></div>
-  </div>
-  <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+<!-- KPI -->
+<div class="kpi-strip" id="kpiStrip">
+  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val gold">—</div><div class="kpi-sub">—</div></div>
+  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val white">—</div><div class="kpi-sub">—</div></div>
+  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val green">—</div><div class="kpi-sub">—</div></div>
+  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val blue">—</div><div class="kpi-sub">—</div></div>
 </div>
 
-<!-- ── RANKING TABLE ── -->
+<!-- CHART -->
+<div class="chart-card" id="chartCard">
+  <div class="chart-head">
+    <span class="chart-title" id="chartTitle">載入中...</span>
+    <div class="chart-head-right">
+      <div class="legend" id="chartLegend"></div>
+      <!-- CHART FILTER DROPDOWN -->
+      <div class="cfd-wrap" id="cfdWrap">
+        <button class="cfd-btn" id="cfdBtn" onclick="toggleCFD(event)">
+          <span id="cfdBtnTxt">全部服務處</span>
+          <span class="cfd-chev" id="cfdChev">▾</span>
+        </button>
+        <div class="cfd-drop" id="cfdDrop">
+          <div class="cfd-search-wrap">
+            <input class="cfd-search" id="cfdSearch" placeholder="搜尋..." oninput="renderCFDList()">
+          </div>
+          <div class="cfd-list" id="cfdList"></div>
+          <div class="cfd-footer" id="cfdFooter"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-outer" id="chartOuter">
+    <svg id="chartSvg"></svg>
+  </div>
+</div>
+
+<!-- TABLE -->
 <div class="table-card">
   <div class="table-head-row">
     <span class="table-title" id="tableTitle">本月排行</span>
@@ -440,523 +284,817 @@ body::after {
 </div>
 
 </div><!-- /wrap -->
+<div class="d3-tip" id="d3tip"></div>
 
-<!-- ════════════════════════════════════
-     DATA & LOGIC
-════════════════════════════════════ -->
 <script>
-/* ─────────────────────────────────────
-   SHEET STRUCTURE (match your Excel)
-   
-   服務處案件統計 (branch sheet):
-     Row 4-17  = 14 服務處
-     Row 18    = 合計
-     Col B-M   = 2025/01-12
-     Col N     = 2025合計
-     Col O-R   = 2026/01-04
-     Col S     = 2026合計
-   
-   禮儀師月統計 (ritual sheet):
-     Rows 5-114   = 接案量 (110 people)
-     Row 115      = 接案量合計
-     Rows 118-227 = 結案率
-     Row 228      = 結案率合計 (if exists)
-     Rows 231-340 = 平均結案天數
-     Row 341      = 平均天數合計 (if exists)
-     Same column layout
-─────────────────────────────────────── */
+/* ══════════════════════════════
+   CONSTANTS
+══════════════════════════════ */
+if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
 const MONTHS = [
   '2025/01','2025/02','2025/03','2025/04','2025/05','2025/06',
   '2025/07','2025/08','2025/09','2025/10','2025/11','2025/12',
   '2026/01','2026/02','2026/03','2026/04'
 ];
-
 const BRANCH_NAMES = [
   '台中','台北','台南','台東策略點','基隆','宜蘭策略點',
   '彰投','新竹','板橋','桃園','花蓮策略點','苗栗','雲嘉','高屏'
 ];
+const SHEET_NAMES = { branch:'服務處案件統計', ritual:'禮儀師月統計' };
+const PAL = [
+  '#d4a843','#e05555','#3a9e72','#3a7ec6','#a855f7',
+  '#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6',
+  '#f59e0b','#6366f1','#10b981','#ef4444','#8b5cf6',
+  '#0ea5e9','#22c55e','#f43f5e','#a78bfa','#34d399'
+];
 
-const SHEET_NAMES = {
-  branch: '服務處案件統計',
-  ritual: '禮儀師月統計',
-};
-
-/* ─── STATE ─── */
-let CFG = {
-  sheetId: localStorage.getItem('ly_sheetId') || '1aott-uG1Sp586Av3ZHRlIsO5XJLk3UxG',
-};
-
-let DATA = {
-  branch: null,  // { names[], cases[][], close[][], days[][] }
-  ritual: null,
-};
-
-let VIEW   = 'branch';   // branch | ritual
-let METRIC = 'cases';    // cases | close | days
-let MONTH_IDX = findLatestMonth();
-let chart  = null;
+/* ══════════════════════════════
+   STATE
+══════════════════════════════ */
+let CFG = { sheetId: localStorage.getItem('ly_sheetId') || '1aott-uG1Sp586Av3ZHRlIsO5XJLk3UxG' };
+let DATA = { branch: null, ritual: null };
+let VIEW = 'branch';
+let METRIC = 'cases';
+let MONTH_IDX = MONTHS.length - 1;
+let selectedBranches = new Set();
+let selectedRituals  = new Set();
+let prevRitualIdxs   = new Set(); // what was last rendered in the line chart
+let cfdNewlyAdded    = null;      // idx of line being added (gets right-to-left anim)
+let cfdOpen          = false;
+let highlightEntity  = null;
+let chartHasRevealed = false;
+let scrollRevealsReady = false;
 let sortCol = -1, sortDir = 1;
+let prevKpi = [null,null,null,null];
+let settingsOpen = false;
 
-/* ─── DEMO DATA ─── */
+/* ══════════════════════════════
+   DEMO DATA
+══════════════════════════════ */
 function buildDemo() {
+  const rng = (a,b) => a + Math.random()*(b-a);
   const branch = {
     names: BRANCH_NAMES,
-    cases: BRANCH_NAMES.map((_, bi) =>
-      MONTHS.map((_, mi) => Math.round(80 + Math.random()*200 + bi*12 + (mi%12)*8))
-    ),
-    close: BRANCH_NAMES.map(() =>
-      MONTHS.map(() => +(0.65 + Math.random()*0.3).toFixed(3))
-    ),
-    days: BRANCH_NAMES.map(() =>
-      MONTHS.map(() => +(3 + Math.random()*5).toFixed(1))
-    ),
+    cases: BRANCH_NAMES.map((_,bi)=>MONTHS.map((_,mi)=>Math.round(rng(60,280)+bi*10+(mi%12)*6))),
+    close: BRANCH_NAMES.map(()=>MONTHS.map(()=>+rng(0.62,0.95).toFixed(3))),
+    days:  BRANCH_NAMES.map(()=>MONTHS.map(()=>+rng(3,9).toFixed(1)))
   };
-
-  // 先建立 110 個禮儀師的名字
-  const ritualNames = Array.from({length:110},(_,i)=>`禮儀師${String(i+1).padStart(3,'0')}`);
+  const rNames = Array.from({length:110},(_,i)=>`禮儀師${String(i+1).padStart(3,'0')}`);
   const ritual = {
-    names: ritualNames,
-    cases: ritualNames.map(() =>
-      MONTHS.map(() => Math.round(1 + Math.random()*18))
-    ),
-    close: ritualNames.map(() =>
-      MONTHS.map(() => +(0.5 + Math.random()*0.5).toFixed(3))
-    ),
-    days: ritualNames.map(() =>
-      MONTHS.map(() => +(2 + Math.random()*7).toFixed(1))
-    ),
+    names: rNames,
+    cases: rNames.map(()=>MONTHS.map(()=>Math.round(rng(1,20)))),
+    close: rNames.map(()=>MONTHS.map(()=>+rng(0.45,0.98).toFixed(3))),
+    days:  rNames.map(()=>MONTHS.map(()=>+rng(2,8).toFixed(1)))
   };
-
   return { branch, ritual };
 }
 
-/* ─── GOOGLE SHEETS FETCH ─── */
-async function fetchSheet(sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-  const res  = await fetch(url);
-  const text = await res.text();
-  const raw  = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-  if (!raw) throw new Error('無法解析回應，請確認試算表已公開');
-  return JSON.parse(raw[1]);
-}
-
-/* Parse branch sheet (服務處案件統計) */
-function parseBranchSheet(json) {
-  const rows = json.table.rows;
-  // rows[0] = row4 (first branch), rows[13] = row17 (last branch), rows[14] = row18 (total, skip)
-  const dataRows = rows.slice(0, 14);  // rows 4-17
-
-  const names = [], cases = [], close_ = [], days = [];
-
-  dataRows.forEach(r => {
-    const cells = r.c || [];
-    const name  = cells[0]?.v ?? '未知';
-    names.push(String(name).trim());
-
-    // Cols B(1) to M(12) = 2025/01-12; N(13)=2025合計skip; O(14)-R(17)=2026/01-04; S(18)=2026合計skip
-    const monthVals = [
-      ...cells.slice(1,13),   // B-M
-      ...cells.slice(14,18),  // O-R
-    ].map(c => parseNum(c?.v));
-
-    cases.push(monthVals);
-    // branch sheet only has cases; close & days come from ritual structure
-    // Placeholder: -1 means "no data in this sheet"
-    close_.push(MONTHS.map(() => -1));
-    days.push(MONTHS.map(() => -1));
+/* ══════════════════════════════
+   SHEETS FETCH + PARSE
+══════════════════════════════ */
+async function fetchSheet(name) {
+  return new Promise((resolve,reject)=>{
+    const cb = `__lySheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement('script');
+    const timeout = setTimeout(()=>{
+      cleanup();
+      reject(new Error('讀取逾時，請確認試算表已公開'));
+    },15000);
+    const cleanup = ()=>{
+      clearTimeout(timeout);
+      delete window[cb];
+      script.remove();
+    };
+    window[cb] = json=>{
+      cleanup();
+      if(json?.status && json.status !== 'ok'){
+        reject(new Error(json.errors?.[0]?.detailed_message || json.errors?.[0]?.message || 'Google Sheets 回傳錯誤'));
+        return;
+      }
+      resolve(json);
+    };
+    script.onerror = ()=>{
+      cleanup();
+      reject(new Error('無法連線 Google Sheets'));
+    };
+    script.src = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(name)}`;
+    document.head.appendChild(script);
   });
-
-  return { names, cases, close: close_, days };
 }
-
-/* Parse ritual sheet (禮儀師月統計) — 3 blocks */
-function parseRitualSheet(json) {
-  const rows = json.table.rows;
-  // Block1: cases  rows[0..109]   (sheet rows 5-114, 0-indexed from row 5)
-  // Block2: close  rows[113..222] (sheet rows 118-227, gap of 3 = rows 115,116,117)
-  // Block3: days   rows[226..335] (sheet rows 231-340, gap of 3)
-  // Note: rows array index = sheetRow - 5 (since gviz skips header)
-  // But gviz starts from row 1 = index 0. So:
-  //   sheet row 5  = index 4  (assuming row 1 is header)
-  //   We'll use row offsets relative to the returned array.
-  
-  // Safer: detect by scanning for non-empty first cells
-  // The sheet has a header row (row1) + possibly row2-4 headers
-  // gviz?sheet=禮儀師月統計 returns ALL rows including headers
-  // We'll grab slices based on known offsets (rows 5-114 = index 4-113, etc.)
-
-  const OFFSET = 4; // row 5 = index 4
-  const BLOCK  = 110;
-  const GAP    = 3; // rows 115,116,117 between blocks (index 114,115,116)
-
-  function extractBlock(startIdx) {
-    return rows.slice(startIdx, startIdx + BLOCK).map(r => {
-      const cells = r.c || [];
-      const name  = String(cells[0]?.v ?? '').replace(/\u200b|\u00a0/g,'').trim();
-      const vals  = [
-        ...cells.slice(1,13),
-        ...cells.slice(14,18),
-      ].map(c => parseNum(c?.v));
-      return { name, vals };
-    });
-  }
-
-  const casesBlock = extractBlock(OFFSET);
-  const closeBlock = extractBlock(OFFSET + BLOCK + GAP);
-  const daysBlock  = extractBlock(OFFSET + BLOCK + GAP + BLOCK + GAP);
-
-  const names = casesBlock.map(r => r.name).filter(Boolean);
-  const cases  = casesBlock.map(r => r.vals);
-  const close_ = closeBlock.map(r => r.vals);
-  const days   = daysBlock.map(r => r.vals);
-
-  return { names, cases, close: close_, days };
-}
-
-function parseNum(v) {
-  if (v == null || v === '') return 0;
+function pNum(v) {
+  if (v==null||v==='') return 0;
   const n = parseFloat(String(v).replace(/,/g,''));
   return isNaN(n) ? 0 : n;
 }
-
-/* ─── LOAD ALL ─── */
-async function loadAll() {
-  setSpin(true);
-  setStatus('busy','同步中...');
-
-  if (!CFG.sheetId) {
-    const demo = buildDemo();
-    DATA.branch = demo.branch;
-    DATA.ritual = demo.ritual;
-    setStatus('','顯示範例資料 — 輸入 Spreadsheet ID 以串接真實資料');
-    setSpin(false);
-    render(); return;
-  }
-
-  try {
-    const [bJson, rJson] = await Promise.all([
-      fetchSheet(SHEET_NAMES.branch),
-      fetchSheet(SHEET_NAMES.ritual),
-    ]);
-    DATA.branch = parseBranchSheet(bJson);
-    DATA.ritual = parseRitualSheet(rJson);
-
-    const t = new Date();
-    const ts = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
-    setStatus('ok', `已同步 Google Sheets — ${ts}`);
-  } catch(e) {
-    console.error(e);
-    const demo = buildDemo();
-    DATA.branch = demo.branch;
-    DATA.ritual = demo.ritual;
-    setStatus('err', `連線失敗：${e.message}（顯示範例資料）`);
-  }
-
-  setSpin(false);
-  render();
+function parseBranch(json) {
+  const rows = json.table.rows.slice(0,14);
+  const names=[],cases=[],close=[],days=[];
+  rows.forEach(r=>{ const c=r.c||[];
+    names.push(String(c[0]?.v??'').trim());
+    cases.push([...c.slice(1,13),...c.slice(14,18)].map(x=>pNum(x?.v)));
+    close.push(MONTHS.map(()=>-1)); days.push(MONTHS.map(()=>-1));
+  });
+  return {names,cases,close,days};
+}
+function parseRitual(json) {
+  const rows = json.table.rows; const O=4,B=110,G=3;
+  function block(s){ return rows.slice(s,s+B).map(r=>{ const c=r.c||[];
+    return { name:String(c[0]?.v??'').replace(/[​ ]/g,'').trim(),
+             vals:[...c.slice(1,13),...c.slice(14,18)].map(x=>pNum(x?.v)) }; }); }
+  const cb=block(O),lb=block(O+B+G),db=block(O+B+G+B+G);
+  return { names:cb.map(r=>r.name).filter(Boolean),
+    cases:cb.map(r=>r.vals), close:lb.map(r=>r.vals), days:db.map(r=>r.vals) };
 }
 
-/* ─── RENDER ─── */
+/* ══════════════════════════════
+   LOAD
+══════════════════════════════ */
+async function loadAll() {
+  setSpin(true); setStatus('busy','同步中...');
+  if (!CFG.sheetId) {
+    const d=buildDemo(); DATA.branch=d.branch; DATA.ritual=d.ritual;
+    setStatus('','顯示範例資料'); setSpin(false); initSelect(); render(); return;
+  }
+  try {
+    const [bj,rj] = await Promise.all([fetchSheet(SHEET_NAMES.branch),fetchSheet(SHEET_NAMES.ritual)]);
+    DATA.branch=parseBranch(bj); DATA.ritual=parseRitual(rj);
+    const t=new Date();
+    setStatus('ok',`已同步 — ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`);
+  } catch(e) {
+    console.error(e);
+    DATA.branch=null; DATA.ritual=null;
+    setStatus('err',`連線失敗：${e.message}`);
+    renderLoadError(e.message);
+    setSpin(false);
+    return;
+  }
+  setSpin(false); initSelect(); render();
+}
+
+function renderLoadError(msg) {
+  document.getElementById('tagPeriod').textContent='資料載入失敗';
+  document.getElementById('chartTitle').textContent='無法載入 Google Sheets 資料';
+  document.getElementById('chartLegend').innerHTML='';
+  document.getElementById('kpiStrip').querySelectorAll('.kpi').forEach(k=>{
+    k.querySelector('.kpi-lbl').textContent='—';
+    k.querySelector('.kpi-val').textContent='—';
+    k.querySelector('.kpi-sub').textContent=msg;
+  });
+  d3.select('#chartSvg').attr('width',document.getElementById('chartOuter').clientWidth||900).attr('height',220).selectAll('*').remove();
+  d3.select('#chartSvg').append('text')
+    .attr('x',(document.getElementById('chartOuter').clientWidth||900)/2)
+    .attr('y',110).attr('text-anchor','middle').attr('fill','#7a8499').attr('font-size',13)
+    .text('Google Sheets 資料讀取失敗');
+  document.getElementById('tableWrap').innerHTML =
+    '<table class="tbl"><tbody><tr><td style="text-align:center;padding:30px;color:var(--text3)">Google Sheets 資料讀取失敗</td></tr></tbody></table>';
+}
+
+function initSelect() {
+  // All branches selected by default
+  if (selectedBranches.size===0 && DATA.branch)
+    DATA.branch.names.forEach((_,i)=>selectedBranches.add(i));
+  // First 10 rituals selected by default (max 20)
+  if (selectedRituals.size===0 && DATA.ritual)
+    for(let i=0;i<Math.min(10,DATA.ritual.names.length);i++) selectedRituals.add(i);
+  prevRitualIdxs = new Set();
+}
+
+/* ══════════════════════════════
+   RENDER CORE
+══════════════════════════════ */
 function render() {
-  updateTag();
+  document.getElementById('tagPeriod').textContent=`${MONTHS[0]} — ${MONTHS[MONTHS.length-1]}`;
   renderMonthTabs();
   renderKPI();
   renderChart();
   renderTable();
+  setupScrollReveals();
 }
 
-function getDataset() {
-  return VIEW === 'branch' ? DATA.branch : DATA.ritual;
-}
-
-function getMetricData(ds) {
-  if (METRIC === 'cases') return ds.cases;
-  if (METRIC === 'close') return ds.close;
-  return ds.days;
-}
-
-function metricLabel() {
-  if (METRIC === 'cases') return '接案量（件）';
-  if (METRIC === 'close') return '結案率（%）';
-  return '平均結案天數';
-}
-
-function fmtVal(v) {
-  if (v == null || v < 0) return '—';
-  if (METRIC === 'close') return (v * 100).toFixed(1) + '%';
-  if (METRIC === 'days')  return v.toFixed(1) + ' 天';
+function ds()  { return VIEW==='branch' ? DATA.branch : DATA.ritual; }
+function mat() { const d=ds(); if(!d)return[]; return METRIC==='cases'?d.cases:METRIC==='close'?d.close:d.days; }
+function mLabel(){ return METRIC==='cases'?'接案量（件）':METRIC==='close'?'結案率（%）':'平均結案天數'; }
+function fmt(v){
+  if(v==null||v<0) return '—';
+  if(METRIC==='close') return (v*100).toFixed(1)+'%';
+  if(METRIC==='days')  return v.toFixed(1)+' 天';
   return Math.round(v).toLocaleString('zh-TW');
 }
 
-/* Month tabs */
+/* ══════ MONTH TABS ══════ */
 function renderMonthTabs() {
-  document.getElementById('monthTabs').innerHTML = MONTHS.map((m, i) =>
-    `<button class="mo-btn ${i===MONTH_IDX?'active':''}" onclick="selMonth(${i})">${m.replace('/','/').slice(0,7)}</button>`
-  ).join('');
+  document.getElementById('monthTabs').innerHTML =
+    MONTHS.map((m,i)=>`<button class="mo-btn${i===MONTH_IDX?' active':''}" onclick="selMonth(${i})">${m}</button>`).join('');
 }
+function selMonth(i){ MONTH_IDX=i; renderMonthTabs(); renderKPI(); renderChart(); renderTable(); }
 
-function selMonth(i) {
-  MONTH_IDX = i;
-  renderMonthTabs(); renderKPI(); renderChart(); renderTable();
-}
-
-/* KPI strip */
+/* ══════ KPI ══════ */
 function renderKPI() {
-  const ds  = getDataset();
-  if (!ds) return;
-  const mat = getMetricData(ds);
-  const mi  = MONTH_IDX;
-
-  // current month total
-  const curVals  = mat.map(row => row[mi] ?? 0).filter(v => v >= 0);
-  const total    = curVals.reduce((a,b) => a+b, 0);
-  const avg      = curVals.length ? total / curVals.length : 0;
-  const maxVal   = Math.max(...curVals);
-  const minVal   = Math.min(...curVals);
-
-  // prev month
-  const prevMi   = mi > 0 ? mi - 1 : null;
-  const prevVals = prevMi != null ? mat.map(row => row[prevMi] ?? 0).filter(v=>v>=0) : [];
-  const prevTot  = prevVals.reduce((a,b)=>a+b,0);
-  const momDiff  = prevTot ? ((total - prevTot) / prevTot * 100) : null;
-  const momColor = momDiff == null ? 'white' : momDiff >= 0 ? 'green' : 'red';
-  const momStr   = momDiff == null ? '—' : (momDiff>=0?'+':'')+momDiff.toFixed(1)+'%';
-
-  const N = curVals.length;
-
-  document.getElementById('kpiStrip').innerHTML = `
-    <div class="kpi" style="animation-delay:.04s">
-      <div class="kpi-lbl">📊 ${MONTHS[mi]} 合計</div>
-      <div class="kpi-val gold">${fmtVal(METRIC==='cases'?total:avg)}</div>
-      <div class="kpi-sub">${METRIC==='cases'?'本月總接案':METRIC==='close'?'本月平均結案率':'本月平均天數'}</div>
-    </div>
-    <div class="kpi" style="animation-delay:.08s">
-      <div class="kpi-lbl">📈 環比變化 MOM</div>
-      <div class="kpi-val ${momColor}">${momStr}</div>
-      <div class="kpi-sub">與上月相比</div>
-    </div>
-    <div class="kpi" style="animation-delay:.12s">
-      <div class="kpi-lbl">🏆 本月最高</div>
-      <div class="kpi-val green">${fmtVal(maxVal)}</div>
-      <div class="kpi-sub">${VIEW==='branch'?'服務處':'禮儀師'} 最高值</div>
-    </div>
-    <div class="kpi" style="animation-delay:.16s">
-      <div class="kpi-lbl">📉 本月最低</div>
-      <div class="kpi-val blue">${fmtVal(minVal)}</div>
-      <div class="kpi-sub">${VIEW==='branch'?'服務處':'禮儀師'} 最低值（${N}筆）</div>
-    </div>
-  `;
+  const d=ds(); if(!d) return;
+  const m=mat(), mi=MONTH_IDX, pmi=mi>0?mi-1:null;
+  const idxs = VIEW==='branch' ? [...selectedBranches] : [...selectedRituals];
+  if(idxs.length===0){ prevKpi=[null,null,null,null]; return; }
+  const cur=idxs.map(i=>m[i]?.[mi]??0).filter(v=>v>=0);
+  const prev=pmi!=null?idxs.map(i=>m[i]?.[pmi]??0).filter(v=>v>=0):[];
+  const tot=cur.reduce((a,b)=>a+b,0), avg=cur.length?tot/cur.length:0;
+  const mainV=METRIC==='cases'?tot:avg;
+  const pTot=prev.reduce((a,b)=>a+b,0), pAvg=prev.length?pTot/prev.length:0;
+  const pMain=METRIC==='cases'?pTot:pAvg;
+  const mom=pMain?((mainV-pMain)/pMain*100):null;
+  const momClr=mom==null?'white':mom>=0?'green':'red';
+  const momStr=mom==null?'—':(mom>=0?'+':'')+mom.toFixed(1)+'%';
+  let maxV=-Infinity,minV=Infinity,maxN='—',minN='—';
+  idxs.forEach(i=>{ const v=m[i]?.[mi]??0; if(v>=0){
+    if(v>maxV){maxV=v;maxN=d.names[i];} if(v<minV){minV=v;minN=d.names[i];}
+  }});
+  if(maxV===-Infinity)maxV=0; if(minV===Infinity)minV=0;
+  const newV=[mainV,mom,maxV,minV];
+  const kpis=document.getElementById('kpiStrip').querySelectorAll('.kpi');
+  function setK(i,lbl,cls,str,sub,raw){
+    const k=kpis[i]; if(!k)return;
+    k.querySelector('.kpi-lbl').textContent=lbl;
+    const vEl=k.querySelector('.kpi-val'); vEl.className=`kpi-val ${cls}`;
+    k.querySelector('.kpi-sub').textContent=sub;
+    animKpi(vEl,prevKpi[i],raw,str);
+  }
+  setK(0,`${MONTHS[mi]} ${METRIC==='cases'?'合計':'平均'}`,'gold',
+    METRIC==='cases'?Math.round(mainV).toLocaleString('zh-TW')+' 件':fmt(mainV),
+    METRIC==='cases'?'本月總接案':METRIC==='close'?'平均結案率':'平均天數',mainV);
+  setK(1,'環比變化 MOM',momClr,momStr,'與上月相比',mom);
+  setK(2,'本月最高','green',fmt(maxV),maxN,maxV);
+  setK(3,'本月最低','blue',fmt(minV),minN,minV);
+  prevKpi=[...newV];
 }
 
-/* Chart */
-const COLORS = [
-  '#c0392b','#e67e22','#f1c40f','#27ae60','#1abc9c',
-  '#2980b9','#8e44ad','#e91e63','#00bcd4','#ff5722',
-  '#795548','#607d8b','#3f51b5','#009688',
-];
+function animKpi(el,from,to,finalStr) {
+  if(from==null||from===to){ el.textContent=finalStr; return; }
+  if(typeof to!=='number'||isNaN(to)){ el.textContent=finalStr; return; }
+  const obj={v:from??0};
+  gsap.to(obj,{ v:to, duration:.7, ease:'power2.out',
+    onUpdate:()=>{
+      const v=obj.v;
+      if(METRIC==='close') el.textContent=(v*100).toFixed(1)+'%';
+      else if(METRIC==='days') el.textContent=v.toFixed(1);
+      else el.textContent=Math.round(v).toLocaleString('zh-TW');
+    },
+    onComplete:()=>{ el.textContent=finalStr; }
+  });
+}
 
-function renderChart() {
-  const ds  = getDataset();
-  if (!ds) return;
-  const mat = getMetricData(ds);
+/* ══════════════════════════════
+   D3 CHARTS
+══════════════════════════════ */
+const MG={top:20,right:20,bottom:65,left:62};
+const CH=300;
 
-  document.getElementById('chartTitle').textContent =
-    `${VIEW==='branch'?'服務處':'禮儀師'} — ${metricLabel()} — 月趨勢`;
+function renderChart(force=false) {
+  const d=ds(); if(!d) return;
+  document.getElementById('chartTitle').textContent=`${VIEW==='branch'?'服務處':'禮儀師'} — ${mLabel()} — 全月趨勢`;
+  const w=document.getElementById('chartOuter').clientWidth||900;
+  updateCFDBtn();
+  if(!force && !chartHasRevealed){
+    const svg=d3.select('#chartSvg').attr('width',w).attr('height',CH+MG.top+MG.bottom);
+    svg.selectAll('*').remove();
+    svg.append('text')
+      .attr('x',w/2).attr('y',(CH+MG.top+MG.bottom)/2)
+      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13)
+      .text('捲動至圖表區後開始繪製');
+    return;
+  }
+  if(VIEW==='branch') drawBar(d,w);
+  else drawLine(d,w);
+}
 
-  // show top-5 entities by current month desc
-  const mi = MONTH_IDX;
-  const ranked = ds.names.map((n,i) => ({ n, i, v: mat[i]?.[mi] ?? 0 }))
-    .filter(x => x.v >= 0)
-    .sort((a,b) => b.v - a.v)
-    .slice(0, VIEW==='branch' ? 14 : 10);
+/* ── BAR CHART ── */
+function drawBar(d, cW) {
+  const m=mat(), allNames=d.names;
+  // Only draw selected branches
+  const selB=[...selectedBranches].filter(i=>i<allNames.length);
+  const nB=selB.length, nM=MONTHS.length;
+  if(nB===0){
+    const svgH=CH+MG.top+MG.bottom;
+    d3.select('#chartSvg').attr('width',cW).attr('height',svgH).selectAll('*').remove();
+    d3.select('#chartSvg').append('text').attr('x',cW/2).attr('y',svgH/2)
+      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13).text('請選擇服務處');
+    document.getElementById('chartLegend').innerHTML=''; return;
+  }
 
-  const datasets = ranked.map((r, ci) => ({
-    label: r.n,
-    data: MONTHS.map((_,mi2) => {
-      const v = mat[r.i]?.[mi2];
-      if (v == null || v < 0) return null;
-      return METRIC === 'close' ? +(v*100).toFixed(1) : v;
-    }),
-    borderColor: COLORS[ci % COLORS.length],
-    backgroundColor: COLORS[ci % COLORS.length] + '22',
-    borderWidth: 1.5,
-    pointRadius: 3,
-    tension: 0.35,
-    fill: false,
-  }));
+  const barW=5,grpPad=8, grpW=nB*(barW+1)+grpPad;
+  const svgW=Math.max(cW, MG.left+MG.right+nM*grpW+20);
+  const svgH=CH+MG.top+MG.bottom;
 
-  document.getElementById('chartLegend').innerHTML = ranked.map((r,ci) =>
-    `<div class="leg-item"><div class="leg-dot" style="background:${COLORS[ci%COLORS.length]}"></div>${r.n}</div>`
-  ).join('');
+  const maxV=d3.max(selB.flatMap(bi=>MONTHS.map((_,mi)=>m[bi]?.[mi]??0)))||1;
+  const xM=d3.scaleBand().domain(d3.range(nM)).range([MG.left,svgW-MG.right]).paddingInner(.12).paddingOuter(.05);
+  const xB=d3.scaleBand().domain(d3.range(nB)).range([0,xM.bandwidth()]).padding(.06);
+  const y=d3.scaleLinear().domain([0,maxV*1.1]).range([svgH-MG.bottom,MG.top]).nice();
 
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: MONTHS, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode:'index', intersect:false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor:'#1d2438',
-          borderColor:'#2c3650', borderWidth:1,
-          titleColor:'#dce2f0', bodyColor:'#7a8499',
-          padding:12,
-          callbacks: {
-            label: c => {
-              const v = c.parsed.y;
-              if (v == null) return `${c.dataset.label}: —`;
-              const str = METRIC==='close' ? v.toFixed(1)+'%'
-                        : METRIC==='days'  ? v.toFixed(1)+' 天'
-                        : Math.round(v).toLocaleString()+' 件';
-              return `${c.dataset.label}: ${str}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid:{ color:'rgba(255,255,255,.03)' },
-          ticks:{ color:'#7a8499', font:{size:10}, maxRotation:45 }
-        },
-        y: {
-          grid:{ color:'rgba(255,255,255,.05)' },
-          ticks:{
-            color:'#7a8499', font:{size:10},
-            callback: v => METRIC==='close' ? v+'%' : METRIC==='days' ? v+'天' : v.toLocaleString()
-          }
-        }
-      }
+  const svg=d3.select('#chartSvg').attr('width',svgW).attr('height',svgH);
+  svg.selectAll('*').remove();
+
+  svg.append('g').attr('class','grid').attr('transform',`translate(${MG.left},0)`)
+    .call(d3.axisLeft(y).tickSize(-(svgW-MG.left-MG.right)).tickFormat('').ticks(5));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${svgH-MG.bottom})`)
+    .call(d3.axisBottom(xM).tickFormat(i=>MONTHS[i]).tickSize(0))
+    .call(g=>g.select('.domain').remove())
+    .selectAll('text').attr('transform','rotate(-38)').style('text-anchor','end').attr('dx','-5px').attr('dy','2px');
+  svg.append('g').attr('class','axis').attr('transform',`translate(${MG.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat(v=>METRIC==='close'?(v*100).toFixed(0)+'%':METRIC==='days'?v+'天':v.toLocaleString()))
+    .call(g=>g.select('.domain').remove());
+
+  d3.range(nM).forEach(mi=>{
+    const g=svg.append('g').attr('transform',`translate(${xM(mi)},0)`);
+    selB.forEach((bi,si)=>{
+      const v=m[bi]?.[mi]??0, yv=y(v), bh=Math.max((svgH-MG.bottom)-yv,0);
+      const color=PAL[bi%PAL.length];
+      const isHL=highlightEntity!==null;
+      const rect=g.append('rect').attr('class','bar')
+        .attr('x',xB(si)).attr('y',svgH-MG.bottom)
+        .attr('width',xB.bandwidth()).attr('height',0)
+        .attr('fill',color).attr('rx',1)
+        .style('opacity',isHL?(highlightEntity===bi?1:.2):1)
+        .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name:allNames[bi],v,color}]))
+        .on('mouseleave',hideTip)
+        .on('click',()=>setHL(bi));
+      gsap.to(rect.node(),{ attr:{y:yv,height:bh}, duration:.5, delay:(mi*nB+si)*.003, ease:'power2.out' });
+    });
+  });
+
+  buildLegend(selB.map(bi=>({name:allNames[bi],color:PAL[bi%PAL.length],type:'bar',idx:bi})));
+}
+
+/* ── LINE CHART ── */
+function drawLine(d, cW) {
+  const m=mat();
+  const idxs=[...selectedRituals];
+  const svgW=Math.max(cW,MG.left+MG.right+600);
+  const svgH=CH+MG.top+MG.bottom;
+
+  const svg=d3.select('#chartSvg').attr('width',svgW).attr('height',svgH);
+  svg.selectAll('*').remove();
+
+  if(idxs.length===0){
+    svg.append('text').attr('x',svgW/2).attr('y',svgH/2)
+      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13).text('請從右上角選擇禮儀師');
+    document.getElementById('chartLegend').innerHTML='';
+    prevRitualIdxs=new Set(); return;
+  }
+
+  const allV=idxs.flatMap(i=>MONTHS.map((_,mi)=>m[i]?.[mi]??0)).filter(v=>v>=0);
+  const maxV=d3.max(allV)||1;
+  const x=d3.scalePoint().domain(d3.range(MONTHS.length)).range([MG.left,svgW-MG.right]).padding(.3);
+  const y=d3.scaleLinear().domain([0,maxV*1.1]).range([svgH-MG.bottom,MG.top]).nice();
+
+  svg.append('g').attr('class','grid').attr('transform',`translate(${MG.left},0)`)
+    .call(d3.axisLeft(y).tickSize(-(svgW-MG.left-MG.right)).tickFormat('').ticks(5));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${svgH-MG.bottom})`)
+    .call(d3.axisBottom(x).tickFormat(i=>MONTHS[i]).tickSize(0))
+    .call(g=>g.select('.domain').remove())
+    .selectAll('text').attr('transform','rotate(-38)').style('text-anchor','end').attr('dx','-5px').attr('dy','2px');
+  svg.append('g').attr('class','axis').attr('transform',`translate(${MG.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat(v=>METRIC==='close'?(v*100).toFixed(0)+'%':METRIC==='days'?v+'天':v.toLocaleString()))
+    .call(g=>g.select('.domain').remove());
+
+  const defs=svg.append('defs');
+  const line=d3.line().x((_,mi)=>x(mi)).y(v=>y(v)).defined(v=>v>=0).curve(d3.curveMonotoneX);
+  const xL=MG.left, xR=svgW-MG.right, totalW=xR-xL;
+
+  idxs.forEach((idx,ci)=>{
+    const name=d.names[idx];
+    const vals=MONTHS.map((_,mi)=>m[idx]?.[mi]??0);
+    const color=PAL[ci%PAL.length];
+    const dim=highlightEntity!==null && highlightEntity!==idx;
+    const isNew=cfdNewlyAdded===idx;
+    const wasRendered=prevRitualIdxs.has(idx) && !isNew;
+
+    const lineGrp=svg.append('g').attr('data-line-idx',idx);
+
+    const path=lineGrp.append('path')
+      .attr('class','line-path'+(dim?' dimmed':''))
+      .attr('d',line(vals)).attr('stroke',color).attr('stroke-width',1.8)
+      .on('mousemove',evt=>{
+        const bnd=document.getElementById('chartSvg').getBoundingClientRect();
+        const step=(svgW-MG.left-MG.right)/(MONTHS.length-1);
+        const mi=Math.max(0,Math.min(MONTHS.length-1,Math.round((evt.clientX-bnd.left-MG.left)/step)));
+        showTip(evt,MONTHS[mi],[{name,v:vals[mi],color}]);
+      })
+      .on('mouseleave',hideTip)
+      .on('click',()=>setHL(idx));
+
+    if(isNew){
+      // Clip path: rect starts at right edge, expands leftward → right-to-left wipe
+      const clipId=`clip-${idx}`;
+      defs.append('clipPath').attr('id',clipId)
+        .append('rect').attr('x',xR).attr('y',0).attr('width',0).attr('height',svgH);
+      path.attr('clip-path',`url(#${clipId})`);
+      gsap.to(defs.select(`#${clipId} rect`).node(),{
+        attr:{x:xL,width:totalW}, duration:1.0, ease:'power2.inOut'
+      });
+      // Dots: pop in right-to-left
+      vals.forEach((v,mi)=>{ if(v<0)return;
+        const dot=lineGrp.append('circle')
+          .attr('class','dot-circle'+(dim?' dimmed':''))
+          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
+          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
+          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
+          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
+        gsap.from(dot.node(),{ scale:0, svgOrigin:`${x(mi)} ${y(v)}`,
+          duration:.35, delay:0.1+(MONTHS.length-1-mi)*0.045, ease:'elastic.out(1,.5)' });
+      });
+    } else if(!wasRendered){
+      // Standard left-to-right dashoffset
+      const pn=path.node(), len=pn.getTotalLength();
+      path.attr('stroke-dasharray',len).attr('stroke-dashoffset',len);
+      gsap.to(pn,{ attr:{'stroke-dashoffset':0}, duration:1.2, delay:ci*.1, ease:'power2.inOut' });
+      vals.forEach((v,mi)=>{ if(v<0)return;
+        const dot=lineGrp.append('circle')
+          .attr('class','dot-circle'+(dim?' dimmed':''))
+          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
+          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
+          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
+          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
+        gsap.from(dot.node(),{ scale:0, svgOrigin:`${x(mi)} ${y(v)}`,
+          duration:.4, delay:1.2+ci*.1+mi*.018, ease:'elastic.out(1,.5)' });
+      });
+    } else {
+      // Was rendered previously: instant (no animation)
+      vals.forEach((v,mi)=>{ if(v<0)return;
+        lineGrp.append('circle')
+          .attr('class','dot-circle'+(dim?' dimmed':''))
+          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
+          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
+          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
+          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
+      });
     }
   });
+
+  prevRitualIdxs=new Set(idxs);
+  buildLegend(idxs.map((idx,ci)=>({name:d.names[idx],color:PAL[ci%PAL.length],type:'line',idx})));
 }
 
-/* Table */
+function buildLegend(items) {
+  document.getElementById('chartLegend').innerHTML=items.map(it=>
+    `<div class="leg-item" onclick="setHL(${it.idx})">
+      <div class="${it.type==='line'?'leg-line':'leg-dot'}" style="background:${it.color}"></div>
+      <span>${it.name}</span>
+    </div>`
+  ).join('');
+}
+function setHL(idx){ highlightEntity=highlightEntity===idx?null:idx; renderChart(); }
+
+/* ══════ TOOLTIP ══════ */
+const TIP=document.getElementById('d3tip');
+function showTip(evt,title,rows){
+  TIP.innerHTML=`<div class="d3-tip-title">${title}</div>`+
+    rows.map(r=>`<div class="d3-tip-row"><div class="d3-tip-sw" style="background:${r.color}"></div><div class="d3-tip-name">${r.name}</div><div class="d3-tip-val">${fmt(r.v)}</div></div>`).join('');
+  TIP.classList.add('show'); posTip(evt);
+}
+function hideTip(){ TIP.classList.remove('show'); }
+function posTip(e){
+  const W=window.innerWidth,H=window.innerHeight;
+  let l=e.clientX+14,t=e.clientY-10;
+  if(l+240>W) l=e.clientX-245;
+  if(t+110>H) t=e.clientY-110;
+  TIP.style.left=l+'px'; TIP.style.top=t+'px';
+}
+document.addEventListener('mousemove',e=>{ if(TIP.classList.contains('show')) posTip(e); });
+
+/* ══════ TABLE ══════ */
 function renderTable() {
-  const ds  = getDataset();
-  if (!ds) return;
-  const mat = getMetricData(ds);
-  const mi  = MONTH_IDX;
-  const q   = document.getElementById('searchBox').value.trim().toLowerCase();
+  const d=ds(); if(!d) return;
+  const m=mat(), mi=MONTH_IDX;
+  const q=document.getElementById('searchBox').value.trim().toLowerCase();
+  document.getElementById('tableTitle').textContent=`${MONTHS[mi]} ${VIEW==='branch'?'服務處':'禮儀師'} ${mLabel()} 排行`;
 
-  document.getElementById('tableTitle').textContent =
-    `${MONTHS[mi]} ${VIEW==='branch'?'服務處':'禮儀師'} ${metricLabel()} 排行`;
+  let rows=d.names.map((name,i)=>({name,i,cur:m[i]?.[mi]??0,prev:mi>0?(m[i]?.[mi-1]??0):null})).filter(r=>r.cur>=0);
+  if(q) rows=rows.filter(r=>r.name.toLowerCase().includes(q));
+  // Filter by selection
+  if(VIEW==='branch') rows=rows.filter(r=>selectedBranches.has(r.i));
+  else if(selectedRituals.size>0) rows=rows.filter(r=>selectedRituals.has(r.i));
 
-  let rows = ds.names.map((name, i) => {
-    const cur  = mat[i]?.[mi]  ?? 0;
-    const prev = mi > 0 ? (mat[i]?.[mi-1] ?? 0) : null;
-    return { name, cur, prev, i };
-  }).filter(r => r.cur >= 0);
+  if(sortCol===0) rows.sort((a,b)=>sortDir*a.name.localeCompare(b.name,'zh'));
+  else if(sortCol===1) rows.sort((a,b)=>sortDir*(b.cur-a.cur));
+  else if(sortCol===2) rows.sort((a,b)=>sortDir*((b.prev!=null?b.cur-b.prev:-Infinity)-(a.prev!=null?a.cur-a.prev:-Infinity)));
+  else rows.sort((a,b)=>b.cur-a.cur);
 
-  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  const tot=rows.reduce((s,r)=>s+r.cur,0);
+  const thCls=c=>sortCol===c?(sortDir>0?' class="sa"':' class="sd"'):'';
+  const label=VIEW==='branch'?'服務處':'禮儀師';
 
-  if (sortCol === 0) rows.sort((a,b) => sortDir * a.name.localeCompare(b.name,'zh'));
-  else if (sortCol === 1) rows.sort((a,b) => sortDir * (b.cur - a.cur));
-  else if (sortCol === 2) rows.sort((a,b) => {
-    const da = a.prev != null ? a.cur - a.prev : -Infinity;
-    const db = b.prev != null ? b.cur - b.prev : -Infinity;
-    return sortDir * (db - da);
-  });
-  else rows.sort((a,b) => b.cur - a.cur); // default: desc by cur
-
-  const totalCur  = rows.reduce((s,r)=>s+r.cur,0);
-
-  const tbody = rows.map((r, rank) => {
-    const chg = r.prev != null ? r.cur - r.prev : null;
-    const chgStr = chg == null ? '—' :
-      METRIC==='close' ? (chg>=0?'+':'')+(chg*100).toFixed(1)+'%' :
-      METRIC==='days'  ? (chg>=0?'+':'')+chg.toFixed(1)+'天' :
-      (chg>=0?'+':'')+Math.round(chg).toLocaleString();
-    const chgCls = chg == null ? '' : chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
-
-    return `<tr>
-      <td>${rank+1}. ${r.name}</td>
-      <td class="hi">${fmtVal(r.cur)}</td>
-      <td class="${chgCls}">${chgStr}</td>
-    </tr>`;
+  const tbody=rows.map((r,rank)=>{
+    const chg=r.prev!=null?r.cur-r.prev:null;
+    const cs=chg==null?'—':METRIC==='close'?(chg>=0?'+':'')+(chg*100).toFixed(1)+'%':METRIC==='days'?(chg>=0?'+':'')+chg.toFixed(1)+'天':(chg>=0?'+':'')+Math.round(chg).toLocaleString();
+    const cc=chg==null?'':chg>0?'up':chg<0?'dn':'';
+    return `<tr><td>${rank+1}. ${r.name}</td><td class="hi">${fmt(r.cur)}</td><td class="${cc}">${cs}</td></tr>`;
   }).join('');
 
-  document.getElementById('tableWrap').innerHTML = `
-    <table class="tbl">
-      <thead><tr>
-        <th onclick="sortBy(0)">${VIEW==='branch'?'服務處':'禮儀師'}</th>
-        <th onclick="sortBy(1)">${MONTHS[mi]} 值</th>
-        <th onclick="sortBy(2)">與上月差</th>
-      </tr></thead>
-      <tbody>${tbody || '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text3)">無資料</td></tr>'}</tbody>
-      <tfoot><tr>
-        <td>合計 / 平均</td>
-        <td>${METRIC==='cases' ? Math.round(totalCur).toLocaleString()+' 件' :
-              METRIC==='close' ? (totalCur/Math.max(rows.length,1)*100).toFixed(1)+'%' :
-              (totalCur/Math.max(rows.length,1)).toFixed(1)+' 天'}</td>
-        <td>—</td>
-      </tr></tfoot>
-    </table>`;
+  document.getElementById('tableWrap').innerHTML=`
+    <table class="tbl"><thead><tr>
+      <th${thCls(0)} onclick="sortBy(0)">${label}</th>
+      <th${thCls(1)} onclick="sortBy(1)">${MONTHS[mi]} 值</th>
+      <th${thCls(2)} onclick="sortBy(2)">與上月差</th>
+    </tr></thead>
+    <tbody>${tbody||'<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text3)">無資料</td></tr>'}</tbody>
+    <tfoot><tr>
+      <td>合計 / 平均</td>
+      <td>${METRIC==='cases'?Math.round(tot).toLocaleString()+' 件':METRIC==='close'?(tot/Math.max(rows.length,1)*100).toFixed(1)+'%':(tot/Math.max(rows.length,1)).toFixed(1)+' 天'}</td>
+      <td>—</td>
+    </tr></tfoot></table>`;
 }
 
-/* ─── CONTROLS ─── */
+/* ══════════════════════════════
+   CHART FILTER DROPDOWN
+══════════════════════════════ */
+function getCFDSel()  { return VIEW==='branch' ? selectedBranches : selectedRituals; }
+function getCFDMax()  { return VIEW==='branch' ? Infinity : 20; }
+function getCFDUnit() { return VIEW==='branch' ? '個服務處' : '位禮儀師'; }
+
+function updateCFDBtn() {
+  const sel=getCFDSel(), d=ds(); if(!d) return;
+  const total=d.names.length, n=sel.size, max=getCFDMax();
+  let lbl;
+  if(n===0) lbl='請選擇';
+  else if(n>=Math.min(total,max)) lbl=VIEW==='branch'?'全部服務處':'全部禮儀師';
+  else lbl=`已選 ${n} ${getCFDUnit()}`;
+  document.getElementById('cfdBtnTxt').textContent=lbl;
+  document.getElementById('cfdBtn').classList.toggle('open',cfdOpen);
+}
+
+function renderCFDList() {
+  const d=ds(); if(!d) return;
+  const sel=getCFDSel(), max=getCFDMax();
+  const q=(document.getElementById('cfdSearch')?.value??'').trim().toLowerCase();
+  const list=document.getElementById('cfdList'); if(!list)return;
+  list.innerHTML='';
+
+  const items=d.names.map((name,i)=>({name,i})).filter(it=>!q||it.name.toLowerCase().includes(q));
+  const total=d.names.length;
+
+  // 全選 row (only when no search query active)
+  if(!q){
+    const allChk=sel.size>=Math.min(total,max);
+    const row=document.createElement('div');
+    row.className='cfd-item cfd-all'+(allChk?' checked':'');
+    row.innerHTML=`<span class="cfd-cb">${allChk?'✓':''}</span><span>全選</span>`;
+    row.onclick=()=>{
+      if(allChk){ sel.clear(); }
+      else { sel.clear(); d.names.forEach((_,i)=>{ if(sel.size<max)sel.add(i); }); }
+      afterCFDChange(); renderCFDList();
+    };
+    list.appendChild(row);
+  }
+
+  // Individual items
+  items.forEach(it=>{
+    const chk=sel.has(it.i);
+    const row=document.createElement('div');
+    row.className='cfd-item'+(chk?' checked':'');
+    row.innerHTML=`<span class="cfd-cb">${chk?'✓':''}</span><span>${it.name}</span>`;
+    row.onclick=()=>cfdToggleItem(it.i);
+    list.appendChild(row);
+  });
+
+  // Footer
+  const footer=document.getElementById('cfdFooter');
+  if(footer){
+    footer.style.color='';
+    footer.textContent=VIEW==='ritual'?`已選 ${sel.size} / 最多 20 位`:`已選 ${sel.size} / ${total}`;
+  }
+}
+
+function cfdToggleItem(idx) {
+  const sel=getCFDSel(), max=getCFDMax();
+
+  if(sel.has(idx)){
+    // REMOVE: animate line out, then re-render
+    if(VIEW==='ritual'){
+      const grp=document.querySelector(`[data-line-idx="${idx}"]`);
+      if(grp){
+        gsap.to(grp,{ opacity:0, duration:0.22, onComplete:()=>{
+          sel.delete(idx); prevRitualIdxs.delete(idx);
+          afterCFDChange(); renderCFDList();
+        }});
+        return;
+      }
+    }
+    sel.delete(idx);
+    afterCFDChange(); renderCFDList();
+  } else {
+    if(sel.size>=max){
+      const footer=document.getElementById('cfdFooter');
+      if(footer){
+        const orig=footer.textContent;
+        footer.textContent=`最多選 ${max} 位`; footer.style.color='#e05555';
+        setTimeout(()=>{ footer.textContent=orig; footer.style.color=''; },1800);
+      }
+      return;
+    }
+    sel.add(idx);
+    if(VIEW==='ritual') cfdNewlyAdded=idx;
+    afterCFDChange(); renderCFDList();
+    cfdNewlyAdded=null;
+  }
+}
+
+function afterCFDChange() {
+  prevKpi=[null,null,null,null];
+  updateCFDBtn();
+  renderKPI(); renderChart(); renderTable();
+}
+
+function toggleCFD(evt) {
+  evt?.stopPropagation();
+  cfdOpen=!cfdOpen;
+  const drop=document.getElementById('cfdDrop');
+  document.getElementById('cfdChev').classList.toggle('open',cfdOpen);
+
+  if(cfdOpen){
+    gsap.set(drop,{clearProps:'all'});
+    drop.style.display='block';
+    drop.classList.add('open');
+    renderCFDList();
+    gsap.fromTo(drop,{scaleY:0,opacity:0},{scaleY:1,opacity:1,duration:.2,ease:'power2.out',transformOrigin:'top right'});
+    setTimeout(()=>document.getElementById('cfdSearch')?.focus(),60);
+  } else {
+    gsap.to(drop,{ scaleY:0, opacity:0, duration:.15, ease:'power2.in', transformOrigin:'top right',
+      onComplete:()=>{ drop.classList.remove('open'); drop.style.display='none'; gsap.set(drop,{clearProps:'all'}); }
+    });
+  }
+  updateCFDBtn();
+}
+
+// Close on outside click
+document.addEventListener('click',e=>{
+  if(cfdOpen && !document.getElementById('cfdWrap')?.contains(e.target)){
+    cfdOpen=false;
+    document.getElementById('cfdChev').classList.remove('open');
+    const drop=document.getElementById('cfdDrop');
+    gsap.to(drop,{ scaleY:0, opacity:0, duration:.15, ease:'power2.in', transformOrigin:'top right',
+      onComplete:()=>{ drop.classList.remove('open'); drop.style.display='none'; gsap.set(drop,{clearProps:'all'}); }
+    });
+    updateCFDBtn();
+  }
+});
+
+/* ══════ CONTROLS ══════ */
 function switchView(v) {
-  VIEW = v;
-  document.getElementById('vsBranch').classList.toggle('active', v==='branch');
-  document.getElementById('vsRitual').classList.toggle('active', v==='ritual');
-  sortCol = -1; sortDir = 1;
-  document.getElementById('searchBox').value = '';
-  render();
+  VIEW=v; highlightEntity=null; sortCol=-1; sortDir=1;
+  prevRitualIdxs=new Set(); prevKpi=[null,null,null,null];
+  document.getElementById('vsBranch').classList.toggle('active',v==='branch');
+  document.getElementById('vsRitual').classList.toggle('active',v==='ritual');
+  document.getElementById('searchBox').value='';
+  const cc=document.getElementById('chartCard');
+  const dir=v==='ritual'?-50:50;
+  gsap.to(cc,{ x:dir, opacity:0, duration:.2, onComplete:()=>{
+    renderKPI(); renderChart(); renderTable();
+    gsap.fromTo(cc,{x:-dir,opacity:0},{x:0,opacity:1,duration:.3,ease:'power2.out'});
+  }});
 }
 
-function switchMetric(m, el) {
-  METRIC = m;
-  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  render();
+function switchMetric(m) {
+  METRIC=m; highlightEntity=null; prevRitualIdxs=new Set(); prevKpi=[null,null,null,null];
+  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  const cc=document.getElementById('chartCard');
+  gsap.to(cc,{ scale:.97, opacity:0, duration:.15, onComplete:()=>{
+    renderKPI(); renderChart(); renderTable();
+    gsap.to(cc,{scale:1,opacity:1,duration:.25,ease:'power2.out'});
+  }});
 }
 
-function sortBy(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = col===1 ? -1 : 1; }
-  renderTable();
+function sortBy(c) {
+  sortDir=sortCol===c?sortDir*-1:(c===1?-1:1); sortCol=c; renderTable();
 }
 
 function applyAndLoad() {
-  const id = document.getElementById('inpId').value.trim();
-  const sn = document.getElementById('inpSheet').value.trim();
-  if (!id) { alert('請輸入 Spreadsheet ID'); return; }
-  CFG.sheetId = id;
-  localStorage.setItem('ly_sheetId', id);
-  if (sn) {
-    // allow overriding sheet names
-    const parts = sn.split('/').map(s=>s.trim());
-    if (parts[0]) SHEET_NAMES.branch = parts[0];
-    if (parts[1]) SHEET_NAMES.ritual = parts[1];
-  }
+  const id=document.getElementById('inpId').value.trim();
+  if(!id){ alert('請輸入 Spreadsheet ID'); return; }
+  CFG.sheetId=id; localStorage.setItem('ly_sheetId',id);
+  selectedBranches.clear(); selectedRituals.clear(); prevRitualIdxs=new Set();
   loadAll();
 }
 
-/* ─── UTILS ─── */
-function findLatestMonth() {
-  // default to March 2026 (index 14 = 2026/03) based on your data
-  return 14;
+function toggleSettings() {
+  settingsOpen=!settingsOpen;
+  document.getElementById('stgArrow').classList.toggle('open',settingsOpen);
+  const p=document.getElementById('settingsPanel');
+  if(settingsOpen){ p.style.display='block'; gsap.from(p,{height:0,opacity:0,duration:.3,ease:'power2.out'}); }
+  else gsap.to(p,{height:0,opacity:0,duration:.2,onComplete:()=>{ p.style.display='none'; p.style.height=''; p.style.opacity=''; }});
 }
 
-function updateTag() {
-  document.getElementById('tagPeriod').textContent = '2025 — 2026/04';
+/* ══════ UTILS ══════ */
+function setStatus(t,msg){ document.getElementById('dot').className='dot '+t; document.getElementById('statusTxt').textContent=msg; }
+function setSpin(on){ document.getElementById('syncBtn').classList.toggle('spin',on); }
+
+/* ══════ SCROLLTRIGGER REVEALS ══════ */
+function revealTween(targets, opts={}) {
+  const els=gsap.utils.toArray(targets).filter(Boolean);
+  if(!els.length) return null;
+  return gsap.fromTo(els,
+    {opacity:0,y:30},
+    {opacity:1,y:0,duration:0.6,ease:'power2.out',stagger:opts.stagger??0}
+  );
 }
 
-function setStatus(type, msg) {
-  document.getElementById('dot').className = 'dot ' + type;
-  document.getElementById('statusTxt').textContent = msg;
+function setupScrollUnit(trigger, targets, opts={}) {
+  const el=document.querySelector(trigger);
+  const targetEls=gsap.utils.toArray(targets).filter(Boolean);
+  if(!el||!targetEls.length) return;
+  gsap.set(targetEls,{opacity:0,y:30});
+  const enter=()=>gsap.fromTo(targetEls,
+    {opacity:0,y:30},
+    {opacity:1,y:0,duration:0.6,ease:'power2.out',stagger:opts.stagger??0,overwrite:true}
+  );
+  const leave=()=>gsap.to(targetEls,
+    {opacity:0,y:-20,duration:0.4,ease:'power2.in',stagger:opts.stagger??0,overwrite:true}
+  );
+  ScrollTrigger.create({
+    trigger:el,
+    start:'top 85%',
+    end:'top 10%',
+    toggleActions:'play reverse play reverse',
+    onEnter:enter,
+    onLeave:leave,
+    onEnterBack:enter,
+    onLeaveBack:leave
+  });
 }
 
-function setSpin(on) {
-  document.getElementById('syncBtn').classList.toggle('spin', on);
+function setupChartScrollUnit() {
+  const card=document.getElementById('chartCard');
+  if(!card) return;
+  gsap.set(card,{opacity:0,y:30});
+  const enter=()=>{
+    if(!chartHasRevealed){
+      chartHasRevealed=true;
+      renderChart(true);
+    }
+    gsap.fromTo(card,{opacity:0,y:30},{opacity:1,y:0,duration:0.6,ease:'power2.out',overwrite:true});
+  };
+  const leave=()=>gsap.to(card,{opacity:0,y:-20,duration:0.4,ease:'power2.in',overwrite:true});
+  ScrollTrigger.create({
+    trigger:card,
+    start:'top 85%',
+    end:'top 10%',
+    toggleActions:'play reverse play reverse',
+    onEnter:enter,
+    onLeave:leave,
+    onEnterBack:enter,
+    onLeaveBack:leave
+  });
 }
 
-/* ─── INIT ─── */
-if (CFG.sheetId) document.getElementById('inpId').value = CFG.sheetId;
-loadAll();
+function animateTableRowsOnScroll() {
+  const card=document.querySelector('.table-card');
+  if(!card) return;
+  gsap.set(card,{opacity:0,y:30});
+  const enter=()=>{
+    gsap.fromTo(card,{opacity:0,y:30},{opacity:1,y:0,duration:0.6,ease:'power2.out',overwrite:true});
+    gsap.fromTo('#tableWrap tbody tr',{opacity:0,y:16},{opacity:1,y:0,duration:0.45,stagger:0.08,ease:'power2.out',overwrite:true});
+  };
+  const leave=()=>gsap.to(card,{opacity:0,y:-20,duration:0.4,ease:'power2.in',overwrite:true});
+  ScrollTrigger.create({
+    trigger:card,
+    start:'top 85%',
+    end:'top 10%',
+    toggleActions:'play reverse play reverse',
+    onEnter:enter,
+    onLeave:leave,
+    onEnterBack:enter,
+    onLeaveBack:leave
+  });
+}
+
+function setupScrollReveals() {
+  if(!window.ScrollTrigger) return;
+  if(scrollRevealsReady){
+    ScrollTrigger.refresh();
+    return;
+  }
+  scrollRevealsReady=true;
+
+  setupScrollUnit('.settings-toggle','.settings-toggle');
+  setupScrollUnit('.view-switch','.view-switch');
+  setupScrollUnit('.metric-tabs','.metric-tabs');
+  setupScrollUnit('#monthTabs','#monthTabs .mo-btn',{stagger:0.08});
+  setupScrollUnit('#kpiStrip','#kpiStrip .kpi',{stagger:0.08});
+  setupScrollUnit('#cfdWrap','#cfdWrap');
+  setupChartScrollUnit();
+  animateTableRowsOnScroll();
+  ScrollTrigger.refresh();
+}
+
+/* ══════ PAGE LOAD ANIMATION ══════ */
+function animEntry() {
+  const tl=gsap.timeline({defaults:{ease:'power2.out'}});
+  tl.from('.logo-box',{y:-28,opacity:0,duration:.5})
+    .from('.brand-text',{y:-20,opacity:0,duration:.4},'-=.3')
+    .from('.topbar-right',{y:-15,opacity:0,duration:.4},'-=.3');
+}
+
+/* ══════ INIT ══════ */
+if(CFG.sheetId) document.getElementById('inpId').value=CFG.sheetId;
+window.addEventListener('load',()=>{ loadAll().then(()=>animEntry()); });
 </script>
 </body>
 </html>
