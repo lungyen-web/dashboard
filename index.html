@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龍巖 — 禮儀案件績效儀表板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ════════ RESET & BASE ════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:        #0a0d14;
+  --bg2:       #111620;
+  --bg3:       #171d2b;
+  --bg4:       #1d2438;
+  --border:    #232b3e;
+  --border2:   #2c3650;
+  --gold:      #d4a843;
+  --gold-dim:  rgba(212,168,67,.15);
+  --red:       #b84040;
+  --red-dim:   rgba(184,64,64,.15);
+  --green:     #3a9e72;
+  --green-dim: rgba(58,158,114,.12);
+  --blue:      #3a7ec6;
+  --blue-dim:  rgba(58,126,198,.12);
+  --text:      #dce2f0;
+  --text2:     #7a8499;
+  --text3:     #3e4a62;
+  --mono:      'DM Mono', monospace;
+  --sans:      'Noto Sans TC', sans-serif;
+}
+
+
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:9999;
+}
+
+/* ════════ LAYOUT ════════ */
+.wrap { max-width:1200px; margin:0 auto; padding:0 28px 80px; }
+
+/* ════════ TOPBAR ════════ */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 0 20px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:30px;
+  flex-wrap:wrap; gap:14px;
+}
+
+.brand { display:flex; align-items:center; gap:14px; }
+
+.logo-box {
+  width:44px; height:44px;
+  background:linear-gradient(135deg,var(--red),#7a2020);
+  border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; font-weight:700; color:#fff;
+  box-shadow:0 0 22px rgba(184,64,64,.35);
+  flex-shrink:0;
+}
+
+.brand-text h1 { font-size:15px; font-weight:700; letter-spacing:.05em; }
+.brand-text p  { font-size:11px; color:var(--text2); margin-top:2px; }
+
+.topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+.tag {
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:5px 12px;
+  font-size:12px;
+  font-family:var(--mono);
+  color:var(--gold);
+}
+
+.icon-btn {
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:6px; padding:6px 12px;
+  font-size:12px; color:var(--text2);
+  cursor:pointer; transition:all .2s;
+  font-family:var(--sans);
+  display:flex; align-items:center; gap:6px;
+}
+.icon-btn:hover { border-color:var(--gold); color:var(--gold); }
+.icon-btn svg { transition:transform .5s; }
+.icon-btn.spin svg { animation:rot .9s linear infinite; }
+@keyframes rot { to { transform:rotate(360deg); } }
+
+/* ════════ SETTINGS PANEL ════════ */
+.settings {
+  background:var(--bg2);
+  border:1px dashed var(--border2);
+  border-radius:12px;
+  padding:20px 22px;
+  margin-bottom:24px;
+  animation:up .35s ease both;
+}
+
+.settings-title {
+  font-size:12px; color:var(--text2); margin-bottom:14px;
+  display:flex; align-items:center; gap:7px; letter-spacing:.04em;
+}
+
+.settings-row {
+  display:grid; grid-template-columns:1fr 1fr auto;
+  gap:10px; align-items:end;
+}
+
+@media(max-width:680px){ .settings-row { grid-template-columns:1fr; } }
+
+.field label {
+  display:block; font-size:10px; color:var(--text3);
+  margin-bottom:5px; letter-spacing:.06em; text-transform:uppercase;
+}
+
+.field input {
+  width:100%;
+  background:var(--bg4); border:1px solid var(--border2);
+  border-radius:7px; padding:8px 11px;
+  font-size:12px; font-family:var(--mono);
+  color:var(--text); outline:none;
+  transition:border-color .2s;
+}
+.field input:focus { border-color:var(--gold); }
+
+.apply-btn {
+  background:var(--gold); border:none;
+  border-radius:7px; padding:8px 20px;
+  font-size:13px; font-weight:500; color:#0a0d14;
+  cursor:pointer; white-space:nowrap;
+  font-family:var(--sans); transition:opacity .2s;
+}
+.apply-btn:hover { opacity:.82; }
+
+.status-row {
+  display:flex; align-items:center; gap:7px;
+  font-size:11px; color:var(--text3); margin-top:10px;
+}
+.dot { width:6px; height:6px; border-radius:50%; background:var(--text3); flex-shrink:0; }
+.dot.ok    { background:var(--green); box-shadow:0 0 6px var(--green); }
+.dot.err   { background:var(--red); }
+.dot.busy  { background:var(--gold); animation:blink 1s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ════════ VIEW SWITCHER ════════ */
+.view-switch {
+  display:flex; gap:0; margin-bottom:22px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:9px; padding:4px; width:fit-content;
+}
+
+.vs-btn {
+  padding:7px 22px; border-radius:6px;
+  font-size:13px; font-family:var(--sans);
+  cursor:pointer; transition:all .2s;
+  border:none; background:transparent; color:var(--text2);
+}
+.vs-btn.active {
+  background:var(--red); color:#fff; font-weight:500;
+}
+
+/* ════════ METRIC TABS ════════ */
+.metric-tabs {
+  display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap;
+}
+
+.mt-btn {
+  padding:6px 16px; border-radius:6px;
+  font-size:12px; font-family:var(--sans);
+  cursor:pointer; transition:all .2s;
+  border:1px solid var(--border);
+  background:var(--bg2); color:var(--text2);
+}
+.mt-btn:hover { border-color:var(--border2); color:var(--text); }
+.mt-btn.active { border-color:var(--gold); color:var(--gold); background:var(--gold-dim); }
+
+/* ════════ MONTH TABS ════════ */
+.month-tabs {
+  display:flex; gap:5px; margin-bottom:26px;
+  overflow-x:auto; padding-bottom:3px; scrollbar-width:none;
+}
+.month-tabs::-webkit-scrollbar { display:none; }
+
+.mo-btn {
+  flex-shrink:0; padding:6px 14px;
+  border-radius:6px; font-size:12px;
+  font-family:var(--sans); cursor:pointer;
+  border:1px solid var(--border);
+  background:var(--bg2); color:var(--text2);
+  transition:all .2s;
+}
+.mo-btn:hover { color:var(--text); border-color:var(--border2); }
+.mo-btn.active { background:var(--red); border-color:var(--red); color:#fff; font-weight:500; }
+
+/* ════════ KPI STRIP ════════ */
+.kpi-strip {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:14px; margin-bottom:24px;
+}
+
+.kpi {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:11px; padding:20px 18px;
+  transition:all .25s; animation:up .4s ease both;
+  cursor:default;
+}
+.kpi:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
+
+@keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.kpi:nth-child(1){animation-delay:.04s}
+.kpi:nth-child(2){animation-delay:.08s}
+.kpi:nth-child(3){animation-delay:.12s}
+.kpi:nth-child(4){animation-delay:.16s}
+
+.kpi-lbl { font-size:11px; color:var(--text2); margin-bottom:9px; letter-spacing:.05em; }
+.kpi-val { font-size:30px; font-weight:700; font-family:var(--mono); line-height:1; margin-bottom:6px; }
+.kpi-val.gold  { color:var(--gold); }
+.kpi-val.red   { color:#e05555; }
+.kpi-val.green { color:var(--green); }
+.kpi-val.blue  { color:var(--blue); }
+.kpi-val.white { color:var(--text); }
+.kpi-sub { font-size:10px; color:var(--text3); }
+
+.prog { margin-top:10px; }
+.prog-bg { background:var(--bg); border-radius:3px; height:4px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:3px; transition:width 1.1s cubic-bezier(.22,1,.36,1); }
+.prog-fill.green { background:var(--green); }
+.prog-fill.gold  { background:var(--gold); }
+.prog-fill.red   { background:var(--red); }
+
+/* ════════ CHART ════════ */
+.chart-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:26px 22px;
+  margin-bottom:18px; animation:up .4s ease .2s both;
+}
+
+.chart-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px; flex-wrap:wrap; gap:10px;
+}
+
+.chart-title { font-size:13px; font-weight:500; }
+
+.legend { display:flex; gap:14px; flex-wrap:wrap; }
+.leg-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); }
+.leg-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+
+.chart-wrap { position:relative; height:300px; }
+
+/* ════════ TABLE ════════ */
+.table-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden;
+  margin-bottom:18px; animation:up .4s ease .28s both;
+}
+
+.table-head-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px 12px; border-bottom:1px solid var(--border);
+  flex-wrap:wrap; gap:8px;
+}
+
+.table-title { font-size:13px; font-weight:500; }
+
+.search-input {
+  background:var(--bg4); border:1px solid var(--border2);
+  border-radius:6px; padding:5px 10px;
+  font-size:12px; color:var(--text);
+  font-family:var(--sans); outline:none; width:160px;
+  transition:border-color .2s;
+}
+.search-input:focus { border-color:var(--gold); }
+
+.tbl { width:100%; border-collapse:collapse; font-size:12px; }
+
+.tbl th {
+  background:var(--bg3);
+  padding:9px 14px; text-align:right;
+  font-size:11px; font-weight:500;
+  color:var(--text2); letter-spacing:.04em;
+  border-bottom:1px solid var(--border);
+  cursor:pointer; user-select:none; transition:color .2s;
+  white-space:nowrap;
+}
+.tbl th:first-child { text-align:left; }
+.tbl th:hover { color:var(--gold); }
+.tbl th.sort-asc::after  { content:' ↑'; color:var(--gold); }
+.tbl th.sort-desc::after { content:' ↓'; color:var(--gold); }
+
+.tbl td {
+  padding:8px 14px; text-align:right;
+  border-bottom:1px solid rgba(35,43,62,.5);
+  font-family:var(--mono); font-size:12px;
+  color:var(--text2);
+  transition:background .15s;
+}
+.tbl td:first-child {
+  text-align:left; font-family:var(--sans);
+  font-size:12px; color:var(--text); font-weight:500;
+}
+.tbl tr:hover td { background:var(--bg3); }
+.tbl tr:last-child td { border-bottom:none; }
+
+.tbl td.hi  { color:var(--gold); }
+.tbl td.up  { color:var(--green); }
+.tbl td.dn  { color:#e05555; }
+
+.tbl tfoot td {
+  background:var(--bg3); font-weight:700;
+  color:var(--text); font-family:var(--mono);
+  border-top:1px solid var(--border2);
+  border-bottom:none;
+}
+.tbl tfoot td:first-child { font-family:var(--sans); }
+
+/* ════════ EMPTY / SKELETON ════════ */
+.empty {
+  padding:48px 20px; text-align:center;
+  color:var(--text3); font-size:13px;
+}
+
+.skel {
+  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200% 100%;
+  animation:shim 1.4s infinite;
+  border-radius:5px; height:14px;
+}
+@keyframes shim { from{background-position:200% 0} to{background-position:-200% 0} }
+
+/* ════════ SCROLLBAR ════════ */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="brand">
+    <div class="logo-box">龍</div>
+    <div class="brand-text">
+      <h1>龍巖股份有限公司</h1>
+      <p>禮儀案件績效儀表板</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="tag" id="tagPeriod">載入中...</div>
+    <button class="icon-btn" id="syncBtn" onclick="loadAll()">
+      <svg id="syncIco" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      同步資料
+    </button>
+  </div>
+</div>
+
+<!-- ── SETTINGS ── -->
+<div class="settings">
+  <div class="settings-title">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/>
+    </svg>
+    Google Sheets 連線設定
+  </div>
+  <div class="settings-row">
+    <div class="field">
+      <label>Spreadsheet ID</label>
+      <input id="inpId" type="text" placeholder="試算表網址中間那段 ID">
+    </div>
+    <div class="field">
+      <label>Sheet名稱（選填，預設自動）</label>
+      <input id="inpSheet" type="text" placeholder="服務處案件統計 / 禮儀師月統計">
+    </div>
+    <button class="apply-btn" onclick="applyAndLoad()">套用</button>
+  </div>
+  <div class="status-row">
+    <div class="dot" id="dot"></div>
+    <span id="statusTxt">尚未設定 — 顯示範例資料</span>
+  </div>
+</div>
+
+<!-- ── VIEW SWITCH ── -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+  <div class="view-switch">
+    <button class="vs-btn active" id="vsBranch" onclick="switchView('branch')">服務處</button>
+    <button class="vs-btn"        id="vsRitual" onclick="switchView('ritual')">禮儀師</button>
+  </div>
+  <div class="metric-tabs">
+    <button class="mt-btn active" onclick="switchMetric('cases',this)">接案量</button>
+    <button class="mt-btn"        onclick="switchMetric('close',this)">結案率</button>
+    <button class="mt-btn"        onclick="switchMetric('days',this)">平均結案天數</button>
+  </div>
+</div>
+
+<!-- ── MONTH TABS ── -->
+<div class="month-tabs" id="monthTabs"></div>
+
+<!-- ── KPI STRIP ── -->
+<div class="kpi-strip" id="kpiStrip"></div>
+
+<!-- ── BAR CHART ── -->
+<div class="chart-card">
+  <div class="chart-head">
+    <span class="chart-title" id="chartTitle">各月趨勢</span>
+    <div class="legend" id="chartLegend"></div>
+  </div>
+  <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+</div>
+
+<!-- ── RANKING TABLE ── -->
+<div class="table-card">
+  <div class="table-head-row">
+    <span class="table-title" id="tableTitle">本月排行</span>
+    <input class="search-input" id="searchBox" placeholder="搜尋..." oninput="renderTable()">
+  </div>
+  <div id="tableWrap"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ════════════════════════════════════
+     DATA & LOGIC
+════════════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────
+   SHEET STRUCTURE (match your Excel)
+   
+   服務處案件統計 (branch sheet):
+     Row 4-17  = 14 服務處
+     Row 18    = 合計
+     Col B-M   = 2025/01-12
+     Col N     = 2025合計
+     Col O-R   = 2026/01-04
+     Col S     = 2026合計
+   
+   禮儀師月統計 (ritual sheet):
+     Rows 5-114   = 接案量 (110 people)
+     Row 115      = 接案量合計
+     Rows 118-227 = 結案率
+     Row 228      = 結案率合計 (if exists)
+     Rows 231-340 = 平均結案天數
+     Row 341      = 平均天數合計 (if exists)
+     Same column layout
+─────────────────────────────────────── */
+
+const MONTHS = [
+  '2025/01','2025/02','2025/03','2025/04','2025/05','2025/06',
+  '2025/07','2025/08','2025/09','2025/10','2025/11','2025/12',
+  '2026/01','2026/02','2026/03','2026/04'
+];
+
+const BRANCH_NAMES = [
+  '台中','台北','台南','台東策略點','基隆','宜蘭策略點',
+  '彰投','新竹','板橋','桃園','花蓮策略點','苗栗','雲嘉','高屏'
+];
+
+const SHEET_NAMES = {
+  branch: '服務處案件統計',
+  ritual: '禮儀師月統計',
+};
+
+/* ─── STATE ─── */
+let CFG = {
+  sheetId: localStorage.getItem('ly_sheetId') || '1aott-uG1Sp586Av3ZHRlIsO5XJLk3UxG',
+};
+
+let DATA = {
+  branch: null,  // { names[], cases[][], close[][], days[][] }
+  ritual: null,
+};
+
+let VIEW   = 'branch';   // branch | ritual
+let METRIC = 'cases';    // cases | close | days
+let MONTH_IDX = findLatestMonth();
+let chart  = null;
+let sortCol = -1, sortDir = 1;
+
+/* ─── DEMO DATA ─── */
+function buildDemo() {
+  const branch = {
+    names: BRANCH_NAMES,
+    cases: BRANCH_NAMES.map((_, bi) =>
+      MONTHS.map((_, mi) => Math.round(80 + Math.random()*200 + bi*12 + (mi%12)*8))
+    ),
+    close: BRANCH_NAMES.map(() =>
+      MONTHS.map(() => +(0.65 + Math.random()*0.3).toFixed(3))
+    ),
+    days: BRANCH_NAMES.map(() =>
+      MONTHS.map(() => +(3 + Math.random()*5).toFixed(1))
+    ),
+  };
+
+  // 先建立 110 個禮儀師的名字
+  const ritualNames = Array.from({length:110},(_,i)=>`禮儀師${String(i+1).padStart(3,'0')}`);
+  const ritual = {
+    names: ritualNames,
+    cases: ritualNames.map(() =>
+      MONTHS.map(() => Math.round(1 + Math.random()*18))
+    ),
+    close: ritualNames.map(() =>
+      MONTHS.map(() => +(0.5 + Math.random()*0.5).toFixed(3))
+    ),
+    days: ritualNames.map(() =>
+      MONTHS.map(() => +(2 + Math.random()*7).toFixed(1))
+    ),
+  };
+
+  return { branch, ritual };
+}
+
+/* ─── GOOGLE SHEETS FETCH ─── */
+async function fetchSheet(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  const raw  = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+  if (!raw) throw new Error('無法解析回應，請確認試算表已公開');
+  return JSON.parse(raw[1]);
+}
+
+/* Parse branch sheet (服務處案件統計) */
+function parseBranchSheet(json) {
+  const rows = json.table.rows;
+  // rows[0] = row4 (first branch), rows[13] = row17 (last branch), rows[14] = row18 (total, skip)
+  const dataRows = rows.slice(0, 14);  // rows 4-17
+
+  const names = [], cases = [], close_ = [], days = [];
+
+  dataRows.forEach(r => {
+    const cells = r.c || [];
+    const name  = cells[0]?.v ?? '未知';
+    names.push(String(name).trim());
+
+    // Cols B(1) to M(12) = 2025/01-12; N(13)=2025合計skip; O(14)-R(17)=2026/01-04; S(18)=2026合計skip
+    const monthVals = [
+      ...cells.slice(1,13),   // B-M
+      ...cells.slice(14,18),  // O-R
+    ].map(c => parseNum(c?.v));
+
+    cases.push(monthVals);
+    // branch sheet only has cases; close & days come from ritual structure
+    // Placeholder: -1 means "no data in this sheet"
+    close_.push(MONTHS.map(() => -1));
+    days.push(MONTHS.map(() => -1));
+  });
+
+  return { names, cases, close: close_, days };
+}
+
+/* Parse ritual sheet (禮儀師月統計) — 3 blocks */
+function parseRitualSheet(json) {
+  const rows = json.table.rows;
+  // Block1: cases  rows[0..109]   (sheet rows 5-114, 0-indexed from row 5)
+  // Block2: close  rows[113..222] (sheet rows 118-227, gap of 3 = rows 115,116,117)
+  // Block3: days   rows[226..335] (sheet rows 231-340, gap of 3)
+  // Note: rows array index = sheetRow - 5 (since gviz skips header)
+  // But gviz starts from row 1 = index 0. So:
+  //   sheet row 5  = index 4  (assuming row 1 is header)
+  //   We'll use row offsets relative to the returned array.
+  
+  // Safer: detect by scanning for non-empty first cells
+  // The sheet has a header row (row1) + possibly row2-4 headers
+  // gviz?sheet=禮儀師月統計 returns ALL rows including headers
+  // We'll grab slices based on known offsets (rows 5-114 = index 4-113, etc.)
+
+  const OFFSET = 4; // row 5 = index 4
+  const BLOCK  = 110;
+  const GAP    = 3; // rows 115,116,117 between blocks (index 114,115,116)
+
+  function extractBlock(startIdx) {
+    return rows.slice(startIdx, startIdx + BLOCK).map(r => {
+      const cells = r.c || [];
+      const name  = String(cells[0]?.v ?? '').replace(/\u200b|\u00a0/g,'').trim();
+      const vals  = [
+        ...cells.slice(1,13),
+        ...cells.slice(14,18),
+      ].map(c => parseNum(c?.v));
+      return { name, vals };
+    });
+  }
+
+  const casesBlock = extractBlock(OFFSET);
+  const closeBlock = extractBlock(OFFSET + BLOCK + GAP);
+  const daysBlock  = extractBlock(OFFSET + BLOCK + GAP + BLOCK + GAP);
+
+  const names = casesBlock.map(r => r.name).filter(Boolean);
+  const cases  = casesBlock.map(r => r.vals);
+  const close_ = closeBlock.map(r => r.vals);
+  const days   = daysBlock.map(r => r.vals);
+
+  return { names, cases, close: close_, days };
+}
+
+function parseNum(v) {
+  if (v == null || v === '') return 0;
+  const n = parseFloat(String(v).replace(/,/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+/* ─── LOAD ALL ─── */
+async function loadAll() {
+  setSpin(true);
+  setStatus('busy','同步中...');
+
+  if (!CFG.sheetId) {
+    const demo = buildDemo();
+    DATA.branch = demo.branch;
+    DATA.ritual = demo.ritual;
+    setStatus('','顯示範例資料 — 輸入 Spreadsheet ID 以串接真實資料');
+    setSpin(false);
+    render(); return;
+  }
+
+  try {
+    const [bJson, rJson] = await Promise.all([
+      fetchSheet(SHEET_NAMES.branch),
+      fetchSheet(SHEET_NAMES.ritual),
+    ]);
+    DATA.branch = parseBranchSheet(bJson);
+    DATA.ritual = parseRitualSheet(rJson);
+
+    const t = new Date();
+    const ts = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+    setStatus('ok', `已同步 Google Sheets — ${ts}`);
+  } catch(e) {
+    console.error(e);
+    const demo = buildDemo();
+    DATA.branch = demo.branch;
+    DATA.ritual = demo.ritual;
+    setStatus('err', `連線失敗：${e.message}（顯示範例資料）`);
+  }
+
+  setSpin(false);
+  render();
+}
+
+/* ─── RENDER ─── */
+function render() {
+  updateTag();
+  renderMonthTabs();
+  renderKPI();
+  renderChart();
+  renderTable();
+}
+
+function getDataset() {
+  return VIEW === 'branch' ? DATA.branch : DATA.ritual;
+}
+
+function getMetricData(ds) {
+  if (METRIC === 'cases') return ds.cases;
+  if (METRIC === 'close') return ds.close;
+  return ds.days;
+}
+
+function metricLabel() {
+  if (METRIC === 'cases') return '接案量（件）';
+  if (METRIC === 'close') return '結案率（%）';
+  return '平均結案天數';
+}
+
+function fmtVal(v) {
+  if (v == null || v < 0) return '—';
+  if (METRIC === 'close') return (v * 100).toFixed(1) + '%';
+  if (METRIC === 'days')  return v.toFixed(1) + ' 天';
+  return Math.round(v).toLocaleString('zh-TW');
+}
+
+/* Month tabs */
+function renderMonthTabs() {
+  document.getElementById('monthTabs').innerHTML = MONTHS.map((m, i) =>
+    `<button class="mo-btn ${i===MONTH_IDX?'active':''}" onclick="selMonth(${i})">${m.replace('/','/').slice(0,7)}</button>`
+  ).join('');
+}
+
+function selMonth(i) {
+  MONTH_IDX = i;
+  renderMonthTabs(); renderKPI(); renderChart(); renderTable();
+}
+
+/* KPI strip */
+function renderKPI() {
+  const ds  = getDataset();
+  if (!ds) return;
+  const mat = getMetricData(ds);
+  const mi  = MONTH_IDX;
+
+  // current month total
+  const curVals  = mat.map(row => row[mi] ?? 0).filter(v => v >= 0);
+  const total    = curVals.reduce((a,b) => a+b, 0);
+  const avg      = curVals.length ? total / curVals.length : 0;
+  const maxVal   = Math.max(...curVals);
+  const minVal   = Math.min(...curVals);
+
+  // prev month
+  const prevMi   = mi > 0 ? mi - 1 : null;
+  const prevVals = prevMi != null ? mat.map(row => row[prevMi] ?? 0).filter(v=>v>=0) : [];
+  const prevTot  = prevVals.reduce((a,b)=>a+b,0);
+  const momDiff  = prevTot ? ((total - prevTot) / prevTot * 100) : null;
+  const momColor = momDiff == null ? 'white' : momDiff >= 0 ? 'green' : 'red';
+  const momStr   = momDiff == null ? '—' : (momDiff>=0?'+':'')+momDiff.toFixed(1)+'%';
+
+  const N = curVals.length;
+
+  document.getElementById('kpiStrip').innerHTML = `
+    <div class="kpi" style="animation-delay:.04s">
+      <div class="kpi-lbl">📊 ${MONTHS[mi]} 合計</div>
+      <div class="kpi-val gold">${fmtVal(METRIC==='cases'?total:avg)}</div>
+      <div class="kpi-sub">${METRIC==='cases'?'本月總接案':METRIC==='close'?'本月平均結案率':'本月平均天數'}</div>
+    </div>
+    <div class="kpi" style="animation-delay:.08s">
+      <div class="kpi-lbl">📈 環比變化 MOM</div>
+      <div class="kpi-val ${momColor}">${momStr}</div>
+      <div class="kpi-sub">與上月相比</div>
+    </div>
+    <div class="kpi" style="animation-delay:.12s">
+      <div class="kpi-lbl">🏆 本月最高</div>
+      <div class="kpi-val green">${fmtVal(maxVal)}</div>
+      <div class="kpi-sub">${VIEW==='branch'?'服務處':'禮儀師'} 最高值</div>
+    </div>
+    <div class="kpi" style="animation-delay:.16s">
+      <div class="kpi-lbl">📉 本月最低</div>
+      <div class="kpi-val blue">${fmtVal(minVal)}</div>
+      <div class="kpi-sub">${VIEW==='branch'?'服務處':'禮儀師'} 最低值（${N}筆）</div>
+    </div>
+  `;
+}
+
+/* Chart */
+const COLORS = [
+  '#c0392b','#e67e22','#f1c40f','#27ae60','#1abc9c',
+  '#2980b9','#8e44ad','#e91e63','#00bcd4','#ff5722',
+  '#795548','#607d8b','#3f51b5','#009688',
+];
+
+function renderChart() {
+  const ds  = getDataset();
+  if (!ds) return;
+  const mat = getMetricData(ds);
+
+  document.getElementById('chartTitle').textContent =
+    `${VIEW==='branch'?'服務處':'禮儀師'} — ${metricLabel()} — 月趨勢`;
+
+  // show top-5 entities by current month desc
+  const mi = MONTH_IDX;
+  const ranked = ds.names.map((n,i) => ({ n, i, v: mat[i]?.[mi] ?? 0 }))
+    .filter(x => x.v >= 0)
+    .sort((a,b) => b.v - a.v)
+    .slice(0, VIEW==='branch' ? 14 : 10);
+
+  const datasets = ranked.map((r, ci) => ({
+    label: r.n,
+    data: MONTHS.map((_,mi2) => {
+      const v = mat[r.i]?.[mi2];
+      if (v == null || v < 0) return null;
+      return METRIC === 'close' ? +(v*100).toFixed(1) : v;
+    }),
+    borderColor: COLORS[ci % COLORS.length],
+    backgroundColor: COLORS[ci % COLORS.length] + '22',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    tension: 0.35,
+    fill: false,
+  }));
+
+  document.getElementById('chartLegend').innerHTML = ranked.map((r,ci) =>
+    `<div class="leg-item"><div class="leg-dot" style="background:${COLORS[ci%COLORS.length]}"></div>${r.n}</div>`
+  ).join('');
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: MONTHS, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#1d2438',
+          borderColor:'#2c3650', borderWidth:1,
+          titleColor:'#dce2f0', bodyColor:'#7a8499',
+          padding:12,
+          callbacks: {
+            label: c => {
+              const v = c.parsed.y;
+              if (v == null) return `${c.dataset.label}: —`;
+              const str = METRIC==='close' ? v.toFixed(1)+'%'
+                        : METRIC==='days'  ? v.toFixed(1)+' 天'
+                        : Math.round(v).toLocaleString()+' 件';
+              return `${c.dataset.label}: ${str}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:{ color:'rgba(255,255,255,.03)' },
+          ticks:{ color:'#7a8499', font:{size:10}, maxRotation:45 }
+        },
+        y: {
+          grid:{ color:'rgba(255,255,255,.05)' },
+          ticks:{
+            color:'#7a8499', font:{size:10},
+            callback: v => METRIC==='close' ? v+'%' : METRIC==='days' ? v+'天' : v.toLocaleString()
+          }
+        }
+      }
+    }
+  });
+}
+
+/* Table */
+function renderTable() {
+  const ds  = getDataset();
+  if (!ds) return;
+  const mat = getMetricData(ds);
+  const mi  = MONTH_IDX;
+  const q   = document.getElementById('searchBox').value.trim().toLowerCase();
+
+  document.getElementById('tableTitle').textContent =
+    `${MONTHS[mi]} ${VIEW==='branch'?'服務處':'禮儀師'} ${metricLabel()} 排行`;
+
+  let rows = ds.names.map((name, i) => {
+    const cur  = mat[i]?.[mi]  ?? 0;
+    const prev = mi > 0 ? (mat[i]?.[mi-1] ?? 0) : null;
+    return { name, cur, prev, i };
+  }).filter(r => r.cur >= 0);
+
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+
+  if (sortCol === 0) rows.sort((a,b) => sortDir * a.name.localeCompare(b.name,'zh'));
+  else if (sortCol === 1) rows.sort((a,b) => sortDir * (b.cur - a.cur));
+  else if (sortCol === 2) rows.sort((a,b) => {
+    const da = a.prev != null ? a.cur - a.prev : -Infinity;
+    const db = b.prev != null ? b.cur - b.prev : -Infinity;
+    return sortDir * (db - da);
+  });
+  else rows.sort((a,b) => b.cur - a.cur); // default: desc by cur
+
+  const totalCur  = rows.reduce((s,r)=>s+r.cur,0);
+
+  const tbody = rows.map((r, rank) => {
+    const chg = r.prev != null ? r.cur - r.prev : null;
+    const chgStr = chg == null ? '—' :
+      METRIC==='close' ? (chg>=0?'+':'')+(chg*100).toFixed(1)+'%' :
+      METRIC==='days'  ? (chg>=0?'+':'')+chg.toFixed(1)+'天' :
+      (chg>=0?'+':'')+Math.round(chg).toLocaleString();
+    const chgCls = chg == null ? '' : chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
+
+    return `<tr>
+      <td>${rank+1}. ${r.name}</td>
+      <td class="hi">${fmtVal(r.cur)}</td>
+      <td class="${chgCls}">${chgStr}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableWrap').innerHTML = `
+    <table class="tbl">
+      <thead><tr>
+        <th onclick="sortBy(0)">${VIEW==='branch'?'服務處':'禮儀師'}</th>
+        <th onclick="sortBy(1)">${MONTHS[mi]} 值</th>
+        <th onclick="sortBy(2)">與上月差</th>
+      </tr></thead>
+      <tbody>${tbody || '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text3)">無資料</td></tr>'}</tbody>
+      <tfoot><tr>
+        <td>合計 / 平均</td>
+        <td>${METRIC==='cases' ? Math.round(totalCur).toLocaleString()+' 件' :
+              METRIC==='close' ? (totalCur/Math.max(rows.length,1)*100).toFixed(1)+'%' :
+              (totalCur/Math.max(rows.length,1)).toFixed(1)+' 天'}</td>
+        <td>—</td>
+      </tr></tfoot>
+    </table>`;
+}
+
+/* ─── CONTROLS ─── */
+function switchView(v) {
+  VIEW = v;
+  document.getElementById('vsBranch').classList.toggle('active', v==='branch');
+  document.getElementById('vsRitual').classList.toggle('active', v==='ritual');
+  sortCol = -1; sortDir = 1;
+  document.getElementById('searchBox').value = '';
+  render();
+}
+
+function switchMetric(m, el) {
+  METRIC = m;
+  document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = col===1 ? -1 : 1; }
+  renderTable();
+}
+
+function applyAndLoad() {
+  const id = document.getElementById('inpId').value.trim();
+  const sn = document.getElementById('inpSheet').value.trim();
+  if (!id) { alert('請輸入 Spreadsheet ID'); return; }
+  CFG.sheetId = id;
+  localStorage.setItem('ly_sheetId', id);
+  if (sn) {
+    // allow overriding sheet names
+    const parts = sn.split('/').map(s=>s.trim());
+    if (parts[0]) SHEET_NAMES.branch = parts[0];
+    if (parts[1]) SHEET_NAMES.ritual = parts[1];
+  }
+  loadAll();
+}
+
+/* ─── UTILS ─── */
+function findLatestMonth() {
+  // default to March 2026 (index 14 = 2026/03) based on your data
+  return 14;
+}
+
+function updateTag() {
+  document.getElementById('tagPeriod').textContent = '2025 — 2026/04';
+}
+
+function setStatus(type, msg) {
+  document.getElementById('dot').className = 'dot ' + type;
+  document.getElementById('statusTxt').textContent = msg;
+}
+
+function setSpin(on) {
+  document.getElementById('syncBtn').classList.toggle('spin', on);
+}
+
+/* ─── INIT ─── */
+if (CFG.sheetId) document.getElementById('inpId').value = CFG.sheetId;
+loadAll();
+</script>
+</body>
+</html>
