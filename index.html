@@ -212,7 +212,11 @@ const COLORS={gold:'#d4a843',red:'#b84040',green:'#3a9e72',blue:'#3a7ec6',gray:'
 const STATUS_COLORS={'原購':COLORS.gold,'轉約':COLORS.red,'非契約件':'#7a8499'};
 const PAL=['#d4a843','#e05555','#3a9e72','#3a7ec6','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6','#f59e0b','#6366f1','#10b981','#ef4444'];
 
-let CFG={sheetId:localStorage.getItem('ly_sheetId')||'1mtxEdyEqgnRc_UPHCJAfw7bkzNh9mnsf'};
+const DEFAULT_SHEET_ID='1mtxEdyEqgnRc_UPHCJAfw7bkzNh9mnsf';
+const LEGACY_SHEET_IDS=new Set(['1aott-uG1Sp586Av3ZHRlIsO5XJLk3UxG']);
+const savedSheetId=localStorage.getItem('ly_sheetId');
+let CFG={sheetId:(!savedSheetId||LEGACY_SHEET_IDS.has(savedSheetId))?DEFAULT_SHEET_ID:savedSheetId};
+if(savedSheetId&&LEGACY_SHEET_IDS.has(savedSheetId)) localStorage.setItem('ly_sheetId',DEFAULT_SHEET_ID);
 let DATA={annual:null,month:null,service:null,ritual:null};
 let annualYear='2026', monthStatus='全部', monthIdx=MONTHS.length-1;
 let selectedServices=new Set(), serviceHighlighted=null;
