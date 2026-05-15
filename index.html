@@ -269,17 +269,19 @@ function parseAnnual(json){
       }});
     }
   });
+  if(areas.length!==6) throw new Error(`${SHEET_NAMES.annual} 結構不符，請確認 Google Sheet 已匯入新版工作表`);
   return areas;
 }
 function parseMonthContract(json){
   const rows=json.table.rows.map(rowVals);
-  const title=String(rows[0]?.[0]||'當月');
+  const title=String(json.table.cols?.[0]?.label||rows[0]?.[0]||'當月').trim();
   const items=[];let current='';
   rows.forEach(r=>{
     if(/^營業[一二三四五六]區$/.test(String(r[0]||''))) current=r[0];
     const status=String(r[1]||'');
     if(current&&STATUSES.includes(status)) items.push({area:current,status,y2025:num(r[2]),y2026:num(r[3])});
   });
+  if(items.length!==18) throw new Error(`${SHEET_NAMES.month} 結構不符，請確認 Google Sheet 已匯入新版工作表`);
   return {title,items};
 }
 function parseService(json){
@@ -294,7 +296,7 @@ function parseService(json){
 }
 function parseRitual(json){
   const rows=json.table.rows.map(rowVals);
-  const title=String(rows[0]?.[0]||'當月禮儀師接案統計');
+  const title=String(json.table.cols?.[0]?.label||rows[0]?.[0]||'當月禮儀師接案統計').trim();
   const people=[];
   rows.forEach(r=>{
     const branch=String(r[0]||''), name=String(r[1]||'');
@@ -303,6 +305,7 @@ function parseRitual(json){
   });
   const branchTotals=d3.rollups(people,v=>({y2025:d3.sum(v,d=>d.y2025),y2026:d3.sum(v,d=>d.y2026),total:d3.sum(v,d=>d.total),count:v.length}),d=>d.branch)
     .map(([branch,vals])=>({branch,...vals}));
+  if(!people.length||!branchTotals.length) throw new Error(`${SHEET_NAMES.ritual} 結構不符，請確認 Google Sheet 已匯入新版工作表`);
   return {title,people,branchTotals,branches:[...new Set(people.map(d=>d.branch))]};
 }
 
@@ -488,9 +491,7 @@ function setupScroll(){
     const el=document.querySelector(sel);gsap.set(el,{opacity:0,y:30});
     ScrollTrigger.create({trigger:el,start:'top 85%',end:'top 10%',toggleActions:'play reverse play reverse',
       onEnter:()=>{gsap.fromTo(el,{opacity:0,y:30},{opacity:1,y:0,duration:.6,ease:'power2.out'});if(!revealed[key])draw()},
-      onEnterBack:()=>{gsap.fromTo(el,{opacity:0,y:30},{opacity:1,y:0,duration:.6,ease:'power2.out'});if(!revealed[key])draw()},
-      onLeave:()=>gsap.to(el,{opacity:0,y:-20,duration:.4,ease:'power2.in'}),
-      onLeaveBack:()=>gsap.to(el,{opacity:0,y:-20,duration:.4,ease:'power2.in'})
+      onEnterBack:()=>{gsap.to(el,{opacity:1,y:0,duration:.25,ease:'power2.out'});if(!revealed[key])draw()}
     });
   });
   ScrollTrigger.refresh();
