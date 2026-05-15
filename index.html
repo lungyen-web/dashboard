@@ -3,1098 +3,510 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>龍巖 — 禮儀案件績效儀表板</title>
+<title>龍巖 - 禮儀案件績效儀表板</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0a0d14;--bg2:#111620;--bg3:#171d2b;--bg4:#1d2438;
   --border:#232b3e;--border2:#2c3650;
-  --gold:#d4a843;--gold-dim:rgba(212,168,67,.15);
-  --red:#b84040;--red-dim:rgba(184,64,64,.15);
-  --green:#3a9e72;--green-dim:rgba(58,158,114,.12);
-  --blue:#3a7ec6;--blue-dim:rgba(58,126,198,.12);
-  --text:#dce2f0;--text2:#7a8499;--text3:#3e4a62;
-  --mono:'DM Mono',monospace;--sans:'Noto Sans TC',sans-serif;
+  --gold:#d4a843;--gold-dim:rgba(212,168,67,.14);
+  --red:#b84040;--red2:#7d262b;--red-dim:rgba(184,64,64,.15);
+  --green:#3a9e72;--blue:#3a7ec6;--gray:#7a8499;
+  --text:#dce2f0;--text2:#8b94a8;--text3:#4f5b73;
+  --sans:'Noto Sans TC',sans-serif;--mono:'DM Mono',monospace;
 }
 html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
-.wrap{max-width:1300px;margin:0 auto;padding:0 28px 80px}
-
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 20px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:14px}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.022'/%3E%3C/svg%3E")}
+.wrap{width:min(1380px,100%);margin:0 auto;padding:0 28px 88px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0 18px;border-bottom:1px solid var(--border);margin-bottom:18px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:14px}
-.logo-box{width:120px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-box{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--red),#731d22);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(184,64,64,.35);overflow:hidden;flex-shrink:0}
 .logo-box img{width:100%;height:100%;object-fit:contain;display:block}
-.brand-text h1{font-size:15px;font-weight:700;letter-spacing:.05em}
-.brand-text p{font-size:11px;color:var(--text2);margin-top:2px}
+.brand-copy h1{font-size:16px;letter-spacing:.04em;font-weight:700}
+.brand-copy p{font-size:12px;color:var(--text2);margin-top:3px}
 .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tag{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--mono);color:var(--gold)}
-.icon-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--sans);display:flex;align-items:center;gap:6px}
-.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.tag{font-family:var(--mono);font-size:12px;color:var(--gold);background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 12px}
+.icon-btn,.small-btn,.select,.search-input{font-family:var(--sans);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);border-radius:7px;outline:none}
+.icon-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;font-size:12px;cursor:pointer;transition:.2s}
+.icon-btn:hover,.small-btn:hover{border-color:var(--gold);color:var(--gold)}
 .icon-btn.spin svg{animation:rot .9s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
-
-/* SETTINGS */
-.settings-toggle{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3);cursor:pointer;padding:5px 0;margin-bottom:8px;user-select:none;transition:color .2s}
+.settings-toggle{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);cursor:pointer;padding:7px 0 8px;width:fit-content;transition:.2s}
 .settings-toggle:hover{color:var(--text2)}
-.stg-arrow{transition:transform .25s;display:flex}
-.stg-arrow.open{transform:rotate(90deg)}
-.settings{background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;padding:20px 22px;margin-bottom:24px;overflow:hidden}
+.stg-arrow{display:flex;transition:.25s}.stg-arrow.open{transform:rotate(90deg)}
+.settings{display:none;background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;padding:18px 20px;margin-bottom:22px;overflow:hidden}
 .settings-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
-@media(max-width:680px){.settings-row{grid-template-columns:1fr}}
-.field label{display:block;font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
-.field input{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;font-size:12px;font-family:var(--mono);color:var(--text);outline:none;transition:border-color .2s}
-.field input:focus{border-color:var(--gold)}
-.apply-btn{background:var(--gold);border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:500;color:#0a0d14;cursor:pointer;white-space:nowrap;font-family:var(--sans);transition:opacity .2s}
-.apply-btn:hover{opacity:.82}
-.status-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3);margin-top:10px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
-.dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
-.dot.err{background:var(--red)}
-.dot.busy{background:var(--gold);animation:blink 1s ease infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-
-/* CONTROLS */
-.controls-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
-.view-switch{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:4px;width:fit-content}
-.vs-btn{padding:7px 22px;border-radius:6px;font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--text2)}
-.vs-btn.active{background:var(--red);color:#fff;font-weight:500}
-.metric-tabs{display:flex;gap:6px;flex-wrap:wrap}
-.mt-btn{padding:6px 16px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .2s;border:1px solid var(--border);background:var(--bg2);color:var(--text2)}
-.mt-btn:hover{border-color:var(--border2);color:var(--text)}
-.mt-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-
-/* MONTH TABS */
-.month-tabs{display:flex;gap:5px;margin-bottom:26px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
-.month-tabs::-webkit-scrollbar{display:none}
-.mo-btn{flex-shrink:0;padding:6px 14px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:background-color .2s,border-color .2s,color .2s}
-.mo-btn:hover{color:var(--text);border-color:var(--border2)}
-.mo-btn.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
-
-/* KPI */
-.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
-.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:20px 18px;cursor:default;transition:all .25s}
-.kpi:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px)}
-.kpi-lbl{font-size:11px;color:var(--text2);margin-bottom:9px;letter-spacing:.05em}
-.kpi-val{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:6px}
-.kpi-val.gold{color:var(--gold)}.kpi-val.red{color:#e05555}.kpi-val.green{color:var(--green)}.kpi-val.blue{color:var(--blue)}.kpi-val.white{color:var(--text)}
-.kpi-sub{font-size:10px;color:var(--text3)}
-
-/* CHART */
-.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:26px 22px;margin-bottom:18px}
-.chart-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.chart-title{font-size:13px;font-weight:500;padding-top:2px}
-.chart-head-right{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
-.legend{display:flex;gap:12px;flex-wrap:wrap;max-width:580px}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;transition:color .15s}
-.leg-item:hover{color:var(--text)}
-.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
-.leg-line{width:18px;height:2px;flex-shrink:0;border-radius:1px}
-.chart-outer{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
-.chart-outer::-webkit-scrollbar{height:4px}
-.chart-outer::-webkit-scrollbar-track{background:var(--bg)}
-.chart-outer::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-#chartSvg{display:block}
-
-/* CHART FILTER DROPDOWN */
-.cfd-wrap{position:relative;flex-shrink:0;align-self:flex-start}
-.cfd-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 11px;font-size:11px;font-family:var(--sans);color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;min-width:110px;justify-content:space-between}
-.cfd-btn:hover,.cfd-btn.open{border-color:var(--gold);color:var(--gold)}
-.cfd-chev{transition:transform .2s;display:inline-block;font-size:9px;opacity:.7}
-.cfd-chev.open{transform:rotate(180deg)}
-.cfd-drop{position:absolute;top:calc(100% + 6px);right:0;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px;min-width:210px;max-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.55);transform-origin:top right;display:none}
-.cfd-drop.open{display:block}
-.cfd-search-wrap{margin-bottom:7px}
-.cfd-search{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;font-size:12px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .2s;display:block}
-.cfd-search:focus{border-color:var(--gold)}
-.cfd-list{max-height:210px;overflow-y:auto;scrollbar-width:thin}
-.cfd-list::-webkit-scrollbar{width:3px}
-.cfd-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.cfd-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:5px;font-size:12px;cursor:pointer;transition:background .1s;color:var(--text2);user-select:none}
-.cfd-item:hover{background:var(--bg4);color:var(--text)}
-.cfd-item.checked{color:var(--text)}
-.cfd-item.cfd-all{border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:8px;font-weight:500;color:var(--text)}
-.cfd-cb{width:13px;height:13px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .12s;color:transparent;background:transparent}
-.cfd-item.checked .cfd-cb{background:var(--red);border-color:var(--red);color:#fff}
-.cfd-footer{font-size:10px;color:var(--text3);margin-top:7px;padding-top:6px;border-top:1px solid var(--border);text-align:right;min-height:16px}
-
-/* D3 elements */
-.bar{cursor:pointer}
-.bar.dimmed{opacity:.2}
-.line-path{fill:none;cursor:pointer}
-.line-path.dimmed{opacity:.15}
-.dot-circle{cursor:pointer}
-.dot-circle.dimmed{opacity:.15}
-.axis text{font-family:'DM Mono',monospace;font-size:10px;fill:#7a8499}
-.axis line,.axis path{stroke:#232b3e}
-.grid line{stroke:#232b3e;stroke-width:.5;stroke-dasharray:2,3}
-.grid path{stroke:none}
-
-/* TOOLTIP */
-.d3-tip{position:fixed;pointer-events:none;background:#1d2438;border:1px solid #2c3650;border-radius:8px;padding:10px 14px;font-family:'Noto Sans TC',sans-serif;font-size:12px;color:#dce2f0;z-index:1000;opacity:0;max-width:230px;box-shadow:0 4px 20px rgba(0,0,0,.45);transition:opacity .12s}
-.d3-tip.show{opacity:1}
-.d3-tip-title{font-size:10px;color:#7a8499;margin-bottom:6px;letter-spacing:.04em}
-.d3-tip-row{display:flex;align-items:center;gap:6px;margin:3px 0}
-.d3-tip-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-.d3-tip-name{flex:1;color:#7a8499;font-size:11px}
-.d3-tip-val{font-family:'DM Mono',monospace;color:#dce2f0;font-size:12px}
-
-/* TABLE */
-.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px}
-.table-head-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
-.table-title{font-size:13px;font-weight:500}
-.search-input{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);font-family:var(--sans);outline:none;width:160px;transition:border-color .2s}
-.search-input:focus{border-color:var(--gold)}
-.tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{background:var(--bg3);padding:9px 14px;text-align:right;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color .2s;white-space:nowrap}
-.tbl th:first-child{text-align:left}
-.tbl th:hover{color:var(--gold)}
-.tbl th.sa::after{content:' ↑';color:var(--gold)}
-.tbl th.sd::after{content:' ↓';color:var(--gold)}
-.tbl td{padding:8px 14px;text-align:right;border-bottom:1px solid rgba(35,43,62,.5);font-family:var(--mono);font-size:12px;color:var(--text2);transition:background .15s}
-.tbl td:first-child{text-align:left;font-family:var(--sans);font-size:12px;color:var(--text);font-weight:500}
-.tbl tr:hover td{background:var(--bg3)}
-.tbl tr:last-child td{border-bottom:none}
-.tbl td.hi{color:var(--gold)}.tbl td.up{color:var(--green)}.tbl td.dn{color:#e05555}
-.tbl tfoot td{background:var(--bg3);font-weight:700;color:var(--text);font-family:var(--mono);border-top:1px solid var(--border2);border-bottom:none}
-.tbl tfoot td:first-child{font-family:var(--sans)}
-
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-@media(max-width:600px){.wrap{padding:0 14px 60px}.kpi-val{font-size:20px}.vs-btn{padding:7px 14px;font-size:12px}}
+.field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:5px}
+.field input{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none}
+.apply-btn{border:none;background:var(--gold);color:#111620;font-weight:700;border-radius:7px;padding:9px 20px;cursor:pointer;font-family:var(--sans)}
+.status-row{display:flex;align-items:center;gap:7px;color:var(--text3);font-size:11px;margin-top:10px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}.dot.ok{background:var(--green);box-shadow:0 0 7px var(--green)}.dot.err{background:var(--red)}.dot.busy{background:var(--gold);animation:blink 1s ease infinite}
+@keyframes blink{50%{opacity:.25}}
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:18px;position:relative}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.section-title h2{font-size:16px;font-weight:700;letter-spacing:.02em}
+.section-title p{font-size:12px;color:var(--text2);margin-top:4px}
+.tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.seg{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:4px}
+.seg-btn,.small-btn{border:none;background:transparent;color:var(--text2);font-family:var(--sans);font-size:12px;border-radius:6px;padding:7px 14px;cursor:pointer;transition:.2s;white-space:nowrap}
+.seg-btn.active{background:var(--red);color:#fff;font-weight:700}
+.small-btn{border:1px solid var(--border2);background:var(--bg3)}
+.select{font-size:12px;padding:8px 12px;cursor:pointer}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px}
+.kpi .lbl{font-size:11px;color:var(--text2);letter-spacing:.04em;margin-bottom:9px}
+.kpi .val{font-size:25px;line-height:1;font-family:var(--mono);font-weight:700;color:var(--gold);margin-bottom:6px}
+.kpi .sub{font-size:10px;color:var(--text3)}
+.chart-wrap{width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.chart-wrap::-webkit-scrollbar{height:5px}.chart-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+svg{display:block}.axis text{font-family:var(--mono);font-size:10px;fill:var(--text2)}.axis path,.axis line{stroke:var(--border)}.grid line{stroke:var(--border);stroke-width:.5;stroke-dasharray:2 3}.grid path{stroke:none}
+.month-tabs{display:flex;gap:5px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.month-tabs::-webkit-scrollbar{display:none}
+.mo-btn{flex-shrink:0;border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:6px;padding:6px 12px;font-family:var(--sans);font-size:12px;cursor:pointer}.mo-btn.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.chart-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text2)}
+.legend-item{display:flex;align-items:center;gap:5px;cursor:pointer}.sw{width:10px;height:10px;border-radius:2px}.line-sw{width:18px;height:2px;border-radius:2px}
+.dropdown{position:relative}
+.drop-btn{min-width:128px;justify-content:space-between}
+.drop-panel{position:absolute;top:calc(100% + 7px);right:0;z-index:30;display:none;min-width:230px;max-width:280px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;box-shadow:0 12px 34px rgba(0,0,0,.5);transform-origin:top right}
+.drop-panel.open{display:block}
+.drop-search{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;padding:7px 9px;color:var(--text);font-size:12px;margin-bottom:8px;outline:none}
+.drop-list{max-height:250px;overflow-y:auto}
+.drop-item{display:flex;align-items:center;gap:8px;padding:7px;border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer}.drop-item:hover,.drop-item.checked{background:var(--bg4);color:var(--text)}
+.cb{width:14px;height:14px;border:1.5px solid var(--border2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}.checked .cb{background:var(--red);border-color:var(--red);color:#fff}
+.table-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:14px;background:var(--bg2)}
+.table-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.table-title{font-size:13px;font-weight:700}.search-input{width:180px;padding:7px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 13px;border-bottom:1px solid rgba(35,43,62,.65);text-align:right}th{background:var(--bg3);color:var(--text2);font-weight:500;cursor:pointer;white-space:nowrap}th:first-child,td:first-child{text-align:left}td{font-family:var(--mono);color:var(--text2)}td:first-child{font-family:var(--sans);color:var(--text);font-weight:500}.hi{color:var(--gold)}.up{color:var(--green)}.dn{color:#e05555}tfoot td{font-weight:700;background:var(--bg3);color:var(--text)}
+.tip{position:fixed;z-index:1000;pointer-events:none;background:#1d2438;border:1px solid #2c3650;border-radius:8px;padding:10px 12px;color:var(--text);font-size:12px;opacity:0;box-shadow:0 8px 26px rgba(0,0,0,.45);max-width:240px}.tip.show{opacity:1}.tip-title{font-size:10px;color:var(--text2);margin-bottom:6px}.tip-row{display:flex;gap:8px;align-items:center;margin:3px 0}.tip-name{color:var(--text2)}.tip-val{font-family:var(--mono);margin-left:auto}
+@media(max-width:760px){.wrap{padding:0 14px 60px}.settings-row{grid-template-columns:1fr}.section{padding:16px}.kpi .val{font-size:21px}.topbar{align-items:flex-start}.logo-box{width:46px;height:46px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="brand">
-    <div class="logo-box"><img src="logo.png" alt="龍巖股份有限公司"></div>
-    <div class="brand-text">
-      <h1>龍巖股份有限公司</h1>
-      <p>禮儀案件績效儀表板</p>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-box"><img src="logo.png" alt="龍巖股份有限公司" onerror="this.replaceWith(document.createTextNode('龍'))"></div>
+      <div class="brand-copy">
+        <h1>龍巖股份有限公司</h1>
+        <p>禮儀案件績效儀表板</p>
+      </div>
     </div>
-  </div>
-  <div class="topbar-right">
-    <div class="tag" id="tagPeriod">載入中...</div>
-    <button class="icon-btn" id="syncBtn" onclick="loadAll()">
-      <svg id="syncIco" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-      </svg>
-      同步資料
-    </button>
-  </div>
-</div>
-
-<!-- SETTINGS TOGGLE -->
-<div class="settings-toggle" onclick="toggleSettings()">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-  </svg>
-  Google Sheets 連線設定
-  <div class="stg-arrow" id="stgArrow">
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-  </div>
-</div>
-<div class="settings" id="settingsPanel" style="display:none">
-  <div class="settings-row">
-    <div class="field">
-      <label>Spreadsheet ID</label>
-      <input id="inpId" type="text" placeholder="試算表網址中間那段 ID">
+    <div class="topbar-right">
+      <div class="tag" id="tagPeriod">載入中...</div>
+      <button class="icon-btn" id="syncBtn" onclick="loadAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        同步資料
+      </button>
     </div>
-    <div class="field">
-      <label>預設 Sheet（自動）</label>
-      <input type="text" value="服務處案件統計 / 禮儀師月統計" readonly style="opacity:.4;cursor:default">
+  </header>
+
+  <div class="settings-toggle" onclick="toggleSettings()">
+    Google Sheets 連線設定
+    <span class="stg-arrow" id="stgArrow">›</span>
+  </div>
+  <div class="settings" id="settingsPanel">
+    <div class="settings-row">
+      <div class="field">
+        <label>Spreadsheet ID</label>
+        <input id="inpId" type="text" placeholder="試算表網址中間那段 ID">
+      </div>
+      <div class="field">
+        <label>固定讀取 Sheet</label>
+        <input type="text" value="四張新版統計表" readonly style="opacity:.45">
+      </div>
+      <button class="apply-btn" onclick="applyAndLoad()">套用</button>
     </div>
-    <button class="apply-btn" onclick="applyAndLoad()">套用</button>
+    <div class="status-row"><span class="dot" id="dot"></span><span id="statusTxt">準備同步資料</span></div>
   </div>
-  <div class="status-row">
-    <div class="dot" id="dot"></div>
-    <span id="statusTxt">準備同步資料</span>
-  </div>
-</div>
 
-<!-- VIEW + METRIC -->
-<div class="controls-row">
-  <div class="view-switch">
-    <button class="vs-btn active" id="vsBranch" onclick="switchView('branch')">服務處</button>
-    <button class="vs-btn" id="vsRitual" onclick="switchView('ritual')">禮儀師</button>
-  </div>
-  <div class="metric-tabs">
-    <button class="mt-btn active" data-m="cases" onclick="switchMetric('cases')">接案量</button>
-    <button class="mt-btn" data-m="close" onclick="switchMetric('close')">結案率</button>
-    <button class="mt-btn" data-m="days" onclick="switchMetric('days')">平均結案天數</button>
-  </div>
-</div>
-
-<!-- MONTH TABS -->
-<div class="month-tabs" id="monthTabs"></div>
-
-<!-- KPI -->
-<div class="kpi-strip" id="kpiStrip">
-  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val gold">—</div><div class="kpi-sub">—</div></div>
-  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val white">—</div><div class="kpi-sub">—</div></div>
-  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val green">—</div><div class="kpi-sub">—</div></div>
-  <div class="kpi"><div class="kpi-lbl">—</div><div class="kpi-val blue">—</div><div class="kpi-sub">—</div></div>
-</div>
-
-<!-- CHART -->
-<div class="chart-card" id="chartCard">
-  <div class="chart-head">
-    <span class="chart-title" id="chartTitle">載入中...</span>
-    <div class="chart-head-right">
-      <div class="legend" id="chartLegend"></div>
-      <!-- CHART FILTER DROPDOWN -->
-      <div class="cfd-wrap" id="cfdWrap">
-        <button class="cfd-btn" id="cfdBtn" onclick="toggleCFD(event)">
-          <span id="cfdBtnTxt">全部服務處</span>
-          <span class="cfd-chev" id="cfdChev">▾</span>
-        </button>
-        <div class="cfd-drop" id="cfdDrop">
-          <div class="cfd-search-wrap">
-            <input class="cfd-search" id="cfdSearch" placeholder="搜尋..." oninput="renderCFDList()">
-          </div>
-          <div class="cfd-list" id="cfdList"></div>
-          <div class="cfd-footer" id="cfdFooter"></div>
+  <section class="section" id="secAnnual">
+    <div class="section-head">
+      <div class="section-title"><h2>履約狀態總覽</h2><p>依營業區彙總全年履約使用狀態</p></div>
+      <div class="tools">
+        <div class="seg" id="annualYearSeg">
+          <button class="seg-btn active" data-year="2026" onclick="setAnnualYear('2026')">2026</button>
+          <button class="seg-btn" data-year="2025" onclick="setAnnualYear('2025')">2025</button>
         </div>
       </div>
     </div>
-  </div>
-  <div class="chart-outer" id="chartOuter">
-    <svg id="chartSvg"></svg>
-  </div>
-</div>
+    <div class="kpi-grid" id="annualKpis"></div>
+    <div class="chart-topline"><div class="legend" id="annualLegend"></div></div>
+    <div class="chart-wrap"><svg id="annualChart"></svg></div>
+  </section>
 
-<!-- TABLE -->
-<div class="table-card">
-  <div class="table-head-row">
-    <span class="table-title" id="tableTitle">本月排行</span>
-    <input class="search-input" id="searchBox" placeholder="搜尋..." oninput="renderTable()">
-  </div>
-  <div id="tableWrap"></div>
-</div>
+  <section class="section" id="secMonth">
+    <div class="section-head">
+      <div class="section-title"><h2>當月履約狀態</h2><p id="monthContractTitle">當月 2025 / 2026 使用狀態比較</p></div>
+      <div class="tools">
+        <select class="select" id="statusSelect" onchange="setMonthStatus(this.value)">
+          <option value="全部">全部</option>
+          <option value="原購">原購</option>
+          <option value="轉約">轉約</option>
+          <option value="非契約件">非契約件</option>
+        </select>
+      </div>
+    </div>
+    <div class="kpi-grid" id="monthKpis"></div>
+    <div class="chart-wrap"><svg id="monthChart"></svg></div>
+  </section>
 
-</div><!-- /wrap -->
-<div class="d3-tip" id="d3tip"></div>
+  <section class="section" id="secService">
+    <div class="section-head">
+      <div class="section-title"><h2>服務處月度趨勢</h2><p>14 個服務處接案量月度折線比較</p></div>
+      <div class="tools">
+        <div class="dropdown" id="serviceDrop">
+          <button class="icon-btn drop-btn" onclick="toggleDrop('service')"><span id="serviceDropText">全部服務處</span><span>▾</span></button>
+          <div class="drop-panel" id="serviceDropPanel">
+            <input class="drop-search" id="serviceSearch" placeholder="搜尋服務處..." oninput="renderServiceDrop()">
+            <div class="drop-list" id="serviceDropList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="month-tabs" id="monthTabs"></div>
+    <div class="kpi-grid" id="serviceKpis"></div>
+    <div class="chart-topline"><div class="legend" id="serviceLegend"></div></div>
+    <div class="chart-wrap"><svg id="serviceChart"></svg></div>
+  </section>
+
+  <section class="section" id="secRitual">
+    <div class="section-head">
+      <div class="section-title"><h2>禮儀師當月排行</h2><p id="ritualTitle">依服務處分組的禮儀師接案排行</p></div>
+      <div class="tools">
+        <select class="select" id="ritualBranchSelect" onchange="setRitualBranch(this.value)"></select>
+        <div class="seg" id="ritualMetricSeg">
+          <button class="seg-btn" data-metric="y2025" onclick="setRitualMetric('y2025')">2025</button>
+          <button class="seg-btn active" data-metric="y2026" onclick="setRitualMetric('y2026')">2026</button>
+          <button class="seg-btn" data-metric="total" onclick="setRitualMetric('total')">合計</button>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-grid" id="ritualKpis"></div>
+    <div class="chart-wrap"><svg id="ritualChart"></svg></div>
+    <div class="table-card">
+      <div class="table-head"><span class="table-title">禮儀師排行表</span><input class="search-input" id="ritualSearch" placeholder="搜尋禮儀師..." oninput="renderRitualTable()"></div>
+      <div id="ritualTableWrap"></div>
+    </div>
+  </section>
+</div>
+<div class="tip" id="tip"></div>
 
 <script>
-/* ══════════════════════════════
-   CONSTANTS
-══════════════════════════════ */
-if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+if(window.gsap&&window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
-const MONTHS = [
-  '2025/01','2025/02','2025/03','2025/04','2025/05','2025/06',
-  '2025/07','2025/08','2025/09','2025/10','2025/11','2025/12',
-  '2026/01','2026/02','2026/03','2026/04'
-];
-const BRANCH_NAMES = [
-  '台中','台北','台南','台東策略點','基隆','宜蘭策略點',
-  '彰投','新竹','板橋','桃園','花蓮策略點','苗栗','雲嘉','高屏'
-];
-const SHEET_NAMES = { branch:'服務處案件統計', ritual:'禮儀師月統計' };
-const PAL = [
-  '#d4a843','#e05555','#3a9e72','#3a7ec6','#a855f7',
-  '#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6',
-  '#f59e0b','#6366f1','#10b981','#ef4444','#8b5cf6',
-  '#0ea5e9','#22c55e','#f43f5e','#a78bfa','#34d399'
-];
+const SHEET_NAMES={
+  annual:'接_履約狀態總表_新',
+  month:'接_履約狀態總表by月_新',
+  service:'服務處案件統計_新',
+  ritual:'禮儀師案件統計by月_新'
+};
+const MONTHS=['2025/01','2025/02','2025/03','2025/04','2025/05','2025/06','2025/07','2025/08','2025/09','2025/10','2025/11','2025/12','2026/01','2026/02','2026/03','2026/04'];
+const STATUSES=['原購','轉約','非契約件'];
+const COLORS={gold:'#d4a843',red:'#b84040',green:'#3a9e72',blue:'#3a7ec6',gray:'#7a8499',red2:'#7d262b'};
+const STATUS_COLORS={'原購':COLORS.gold,'轉約':COLORS.red,'非契約件':'#7a8499'};
+const PAL=['#d4a843','#e05555','#3a9e72','#3a7ec6','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899','#14b8a6','#f59e0b','#6366f1','#10b981','#ef4444'];
 
-/* ══════════════════════════════
-   STATE
-══════════════════════════════ */
-let CFG = { sheetId: localStorage.getItem('ly_sheetId') || '1aott-uG1Sp586Av3ZHRlIsO5XJLk3UxG' };
-let DATA = { branch: null, ritual: null };
-let VIEW = 'branch';
-let METRIC = 'cases';
-let MONTH_IDX = MONTHS.length - 1;
-let selectedBranches = new Set();
-let selectedRituals  = new Set();
-let prevRitualIdxs   = new Set(); // what was last rendered in the line chart
-let cfdNewlyAdded    = null;      // idx of line being added (gets right-to-left anim)
-let cfdOpen          = false;
-let highlightEntity  = null;
-let chartHasRevealed = false;
-let scrollRevealsReady = false;
-let sortCol = -1, sortDir = 1;
-let prevKpi = [null,null,null,null];
-let settingsOpen = false;
+let CFG={sheetId:localStorage.getItem('ly_sheetId')||'1mtxEdyEqgnRc_UPHCJAfw7bkzNh9mnsf'};
+let DATA={annual:null,month:null,service:null,ritual:null};
+let annualYear='2026', monthStatus='全部', monthIdx=MONTHS.length-1;
+let selectedServices=new Set(), serviceHighlighted=null;
+let ritualBranch='全部', ritualMetric='y2026', ritualSort='value', ritualSortDir=-1;
+let revealed={annual:false,month:false,service:false,ritual:false};
+let settingsOpen=false, serviceDropOpen=false, scrollReady=false;
+let prevKpi={annual:[],month:[],service:[],ritual:[]};
 
-/* ══════════════════════════════
-   DEMO DATA
-══════════════════════════════ */
-function buildDemo() {
-  const rng = (a,b) => a + Math.random()*(b-a);
-  const branch = {
-    names: BRANCH_NAMES,
-    cases: BRANCH_NAMES.map((_,bi)=>MONTHS.map((_,mi)=>Math.round(rng(60,280)+bi*10+(mi%12)*6))),
-    close: BRANCH_NAMES.map(()=>MONTHS.map(()=>+rng(0.62,0.95).toFixed(3))),
-    days:  BRANCH_NAMES.map(()=>MONTHS.map(()=>+rng(3,9).toFixed(1)))
-  };
-  const rNames = Array.from({length:110},(_,i)=>`禮儀師${String(i+1).padStart(3,'0')}`);
-  const ritual = {
-    names: rNames,
-    cases: rNames.map(()=>MONTHS.map(()=>Math.round(rng(1,20)))),
-    close: rNames.map(()=>MONTHS.map(()=>+rng(0.45,0.98).toFixed(3))),
-    days:  rNames.map(()=>MONTHS.map(()=>+rng(2,8).toFixed(1)))
-  };
-  return { branch, ritual };
-}
+const $=sel=>document.querySelector(sel);
+const $$=sel=>Array.from(document.querySelectorAll(sel));
+const num=v=>{const n=parseFloat(String(v??'').replace(/,/g,''));return Number.isFinite(n)?n:0};
+const fmt=v=>Math.round(v||0).toLocaleString('zh-TW');
 
-/* ══════════════════════════════
-   SHEETS FETCH + PARSE
-══════════════════════════════ */
-async function fetchSheet(name) {
+function rowVals(row){return (row.c||[]).map(c=>c?.v??null)}
+function fetchSheet(name){
   return new Promise((resolve,reject)=>{
-    const cb = `__lySheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement('script');
-    const timeout = setTimeout(()=>{
-      cleanup();
-      reject(new Error('讀取逾時，請確認試算表已公開'));
-    },15000);
-    const cleanup = ()=>{
-      clearTimeout(timeout);
-      delete window[cb];
-      script.remove();
-    };
-    window[cb] = json=>{
-      cleanup();
-      if(json?.status && json.status !== 'ok'){
-        reject(new Error(json.errors?.[0]?.detailed_message || json.errors?.[0]?.message || 'Google Sheets 回傳錯誤'));
-        return;
-      }
-      resolve(json);
-    };
-    script.onerror = ()=>{
-      cleanup();
-      reject(new Error('無法連線 Google Sheets'));
-    };
-    script.src = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(name)}`;
+    const cb=`__ly_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error(`${name} 讀取逾時`))},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+    window[cb]=json=>{cleanup();json?.status&&json.status!=='ok'?reject(new Error(json.errors?.[0]?.message||`${name} 回傳錯誤`)):resolve(json)};
+    script.onerror=()=>{cleanup();reject(new Error(`${name} 連線失敗`))};
+    script.src=`https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(name)}`;
     document.head.appendChild(script);
   });
 }
-function pNum(v) {
-  if (v==null||v==='') return 0;
-  const n = parseFloat(String(v).replace(/,/g,''));
-  return isNaN(n) ? 0 : n;
-}
-function parseBranch(json) {
-  const rows = json.table.rows.slice(0,14);
-  const names=[],cases=[],close=[],days=[];
-  rows.forEach(r=>{ const c=r.c||[];
-    names.push(String(c[0]?.v??'').trim());
-    cases.push([...c.slice(1,13),...c.slice(14,18)].map(x=>pNum(x?.v)));
-    close.push(MONTHS.map(()=>-1)); days.push(MONTHS.map(()=>-1));
-  });
-  return {names,cases,close,days};
-}
-function parseRitual(json) {
-  const rows = json.table.rows; const O=4,B=110,G=3;
-  function block(s){ return rows.slice(s,s+B).map(r=>{ const c=r.c||[];
-    return { name:String(c[0]?.v??'').replace(/[​ ]/g,'').trim(),
-             vals:[...c.slice(1,13),...c.slice(14,18)].map(x=>pNum(x?.v)) }; }); }
-  const cb=block(O),lb=block(O+B+G),db=block(O+B+G+B+G);
-  return { names:cb.map(r=>r.name).filter(Boolean),
-    cases:cb.map(r=>r.vals), close:lb.map(r=>r.vals), days:db.map(r=>r.vals) };
-}
 
-/* ══════════════════════════════
-   LOAD
-══════════════════════════════ */
-async function loadAll() {
-  setSpin(true); setStatus('busy','同步中...');
-  if (!CFG.sheetId) {
-    const d=buildDemo(); DATA.branch=d.branch; DATA.ritual=d.ritual;
-    setStatus('','顯示範例資料'); setSpin(false); initSelect(); render(); return;
-  }
-  try {
-    const [bj,rj] = await Promise.all([fetchSheet(SHEET_NAMES.branch),fetchSheet(SHEET_NAMES.ritual)]);
-    DATA.branch=parseBranch(bj); DATA.ritual=parseRitual(rj);
+async function loadAll(){
+  setSpin(true);setStatus('busy','同步中...');
+  try{
+    const [annual,month,service,ritual]=await Promise.all(Object.values(SHEET_NAMES).map(fetchSheet));
+    DATA.annual=parseAnnual(annual);
+    DATA.month=parseMonthContract(month);
+    DATA.service=parseService(service);
+    DATA.ritual=parseRitual(ritual);
+    if(!selectedServices.size) DATA.service.names.forEach((_,i)=>selectedServices.add(i));
     const t=new Date();
-    setStatus('ok',`已同步 — ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`);
-  } catch(e) {
-    console.error(e);
-    DATA.branch=null; DATA.ritual=null;
-    setStatus('err',`連線失敗：${e.message}`);
-    renderLoadError(e.message);
-    setSpin(false);
-    return;
-  }
-  setSpin(false); initSelect(); render();
+    setStatus('ok',`已同步 ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`);
+    $('#tagPeriod').textContent=`${DATA.month.title||'當月'} / ${MONTHS[0]} - ${MONTHS.at(-1)}`;
+    renderAll();
+  }catch(e){
+    console.error(e);setStatus('err',e.message);renderError(e.message);
+  }finally{setSpin(false)}
 }
 
-function renderLoadError(msg) {
-  document.getElementById('tagPeriod').textContent='資料載入失敗';
-  document.getElementById('chartTitle').textContent='無法載入 Google Sheets 資料';
-  document.getElementById('chartLegend').innerHTML='';
-  document.getElementById('kpiStrip').querySelectorAll('.kpi').forEach(k=>{
-    k.querySelector('.kpi-lbl').textContent='—';
-    k.querySelector('.kpi-val').textContent='—';
-    k.querySelector('.kpi-sub').textContent=msg;
+function parseAnnual(json){
+  const rows=json.table.rows.map(rowVals);
+  const areas=[];
+  rows.forEach(r=>{
+    if(/^營業[一二三四五六]區$/.test(String(r[0]||''))){
+      areas.push({area:r[0],data:{
+        '2025':{'原購':num(r[1]),'轉約':num(r[3]),'非契約件':num(r[5])},
+        '2026':{'原購':num(r[2]),'轉約':num(r[4]),'非契約件':num(r[6])}
+      }});
+    }
   });
-  d3.select('#chartSvg').attr('width',document.getElementById('chartOuter').clientWidth||900).attr('height',220).selectAll('*').remove();
-  d3.select('#chartSvg').append('text')
-    .attr('x',(document.getElementById('chartOuter').clientWidth||900)/2)
-    .attr('y',110).attr('text-anchor','middle').attr('fill','#7a8499').attr('font-size',13)
-    .text('Google Sheets 資料讀取失敗');
-  document.getElementById('tableWrap').innerHTML =
-    '<table class="tbl"><tbody><tr><td style="text-align:center;padding:30px;color:var(--text3)">Google Sheets 資料讀取失敗</td></tr></tbody></table>';
+  return areas;
 }
-
-function initSelect() {
-  // All branches selected by default
-  if (selectedBranches.size===0 && DATA.branch)
-    DATA.branch.names.forEach((_,i)=>selectedBranches.add(i));
-  // First 10 rituals selected by default (max 20)
-  if (selectedRituals.size===0 && DATA.ritual)
-    for(let i=0;i<Math.min(10,DATA.ritual.names.length);i++) selectedRituals.add(i);
-  prevRitualIdxs = new Set();
-}
-
-/* ══════════════════════════════
-   RENDER CORE
-══════════════════════════════ */
-function render() {
-  document.getElementById('tagPeriod').textContent=`${MONTHS[0]} — ${MONTHS[MONTHS.length-1]}`;
-  renderMonthTabs();
-  renderKPI();
-  renderChart();
-  renderTable();
-  setupScrollReveals();
-}
-
-function ds()  { return VIEW==='branch' ? DATA.branch : DATA.ritual; }
-function mat() { const d=ds(); if(!d)return[]; return METRIC==='cases'?d.cases:METRIC==='close'?d.close:d.days; }
-function mLabel(){ return METRIC==='cases'?'接案量（件）':METRIC==='close'?'結案率（%）':'平均結案天數'; }
-function fmt(v){
-  if(v==null||v<0) return '—';
-  if(METRIC==='close') return (v*100).toFixed(1)+'%';
-  if(METRIC==='days')  return v.toFixed(1)+' 天';
-  return Math.round(v).toLocaleString('zh-TW');
-}
-
-/* ══════ MONTH TABS ══════ */
-function renderMonthTabs() {
-  document.getElementById('monthTabs').innerHTML =
-    MONTHS.map((m,i)=>`<button class="mo-btn${i===MONTH_IDX?' active':''}" onclick="selMonth(${i})">${m}</button>`).join('');
-}
-function selMonth(i){ MONTH_IDX=i; renderMonthTabs(); renderKPI(); renderChart(); renderTable(); }
-
-/* ══════ KPI ══════ */
-function renderKPI() {
-  const d=ds(); if(!d) return;
-  const m=mat(), mi=MONTH_IDX, pmi=mi>0?mi-1:null;
-  const idxs = VIEW==='branch' ? [...selectedBranches] : [...selectedRituals];
-  if(idxs.length===0){ prevKpi=[null,null,null,null]; return; }
-  const cur=idxs.map(i=>m[i]?.[mi]??0).filter(v=>v>=0);
-  const prev=pmi!=null?idxs.map(i=>m[i]?.[pmi]??0).filter(v=>v>=0):[];
-  const tot=cur.reduce((a,b)=>a+b,0), avg=cur.length?tot/cur.length:0;
-  const mainV=METRIC==='cases'?tot:avg;
-  const pTot=prev.reduce((a,b)=>a+b,0), pAvg=prev.length?pTot/prev.length:0;
-  const pMain=METRIC==='cases'?pTot:pAvg;
-  const mom=pMain?((mainV-pMain)/pMain*100):null;
-  const momClr=mom==null?'white':mom>=0?'green':'red';
-  const momStr=mom==null?'—':(mom>=0?'+':'')+mom.toFixed(1)+'%';
-  let maxV=-Infinity,minV=Infinity,maxN='—',minN='—';
-  idxs.forEach(i=>{ const v=m[i]?.[mi]??0; if(v>=0){
-    if(v>maxV){maxV=v;maxN=d.names[i];} if(v<minV){minV=v;minN=d.names[i];}
-  }});
-  if(maxV===-Infinity)maxV=0; if(minV===Infinity)minV=0;
-  const newV=[mainV,mom,maxV,minV];
-  const kpis=document.getElementById('kpiStrip').querySelectorAll('.kpi');
-  function setK(i,lbl,cls,str,sub,raw){
-    const k=kpis[i]; if(!k)return;
-    k.querySelector('.kpi-lbl').textContent=lbl;
-    const vEl=k.querySelector('.kpi-val'); vEl.className=`kpi-val ${cls}`;
-    k.querySelector('.kpi-sub').textContent=sub;
-    animKpi(vEl,prevKpi[i],raw,str);
-  }
-  setK(0,`${MONTHS[mi]} ${METRIC==='cases'?'合計':'平均'}`,'gold',
-    METRIC==='cases'?Math.round(mainV).toLocaleString('zh-TW')+' 件':fmt(mainV),
-    METRIC==='cases'?'本月總接案':METRIC==='close'?'平均結案率':'平均天數',mainV);
-  setK(1,'環比變化 MOM',momClr,momStr,'與上月相比',mom);
-  setK(2,'本月最高','green',fmt(maxV),maxN,maxV);
-  setK(3,'本月最低','blue',fmt(minV),minN,minV);
-  prevKpi=[...newV];
-}
-
-function animKpi(el,from,to,finalStr) {
-  if(from==null||from===to){ el.textContent=finalStr; return; }
-  if(typeof to!=='number'||isNaN(to)){ el.textContent=finalStr; return; }
-  const obj={v:from??0};
-  gsap.to(obj,{ v:to, duration:.7, ease:'power2.out',
-    onUpdate:()=>{
-      const v=obj.v;
-      if(METRIC==='close') el.textContent=(v*100).toFixed(1)+'%';
-      else if(METRIC==='days') el.textContent=v.toFixed(1);
-      else el.textContent=Math.round(v).toLocaleString('zh-TW');
-    },
-    onComplete:()=>{ el.textContent=finalStr; }
+function parseMonthContract(json){
+  const rows=json.table.rows.map(rowVals);
+  const title=String(rows[0]?.[0]||'當月');
+  const items=[];let current='';
+  rows.forEach(r=>{
+    if(/^營業[一二三四五六]區$/.test(String(r[0]||''))) current=r[0];
+    const status=String(r[1]||'');
+    if(current&&STATUSES.includes(status)) items.push({area:current,status,y2025:num(r[2]),y2026:num(r[3])});
   });
+  return {title,items};
 }
-
-/* ══════════════════════════════
-   D3 CHARTS
-══════════════════════════════ */
-const MG={top:20,right:20,bottom:65,left:62};
-const CH=300;
-
-function renderChart(force=false) {
-  const d=ds(); if(!d) return;
-  document.getElementById('chartTitle').textContent=`${VIEW==='branch'?'服務處':'禮儀師'} — ${mLabel()} — 全月趨勢`;
-  const w=document.getElementById('chartOuter').clientWidth||900;
-  updateCFDBtn();
-  if(!force && !chartHasRevealed){
-    const svg=d3.select('#chartSvg').attr('width',w).attr('height',CH+MG.top+MG.bottom);
-    svg.selectAll('*').remove();
-    svg.append('text')
-      .attr('x',w/2).attr('y',(CH+MG.top+MG.bottom)/2)
-      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13)
-      .text('捲動至圖表區後開始繪製');
-    return;
-  }
-  if(VIEW==='branch') drawBar(d,w);
-  else drawLine(d,w);
+function parseService(json){
+  const rows=json.table.rows.map(rowVals);
+  const records=rows
+    .filter(r=>String(r[0]||'').includes('服務處')||String(r[0]||'').includes('策略點'))
+    .filter(r=>String(r[0])!=='服務處'&&!String(r[0]).includes('合計'));
+  return {
+    names:records.map(r=>r[0]),
+    values:records.map(r=>[...r.slice(1,13),...r.slice(14,18)].map(num))
+  };
 }
-
-/* ── BAR CHART ── */
-function drawBar(d, cW) {
-  const m=mat(), allNames=d.names;
-  // Only draw selected branches
-  const selB=[...selectedBranches].filter(i=>i<allNames.length);
-  const nB=selB.length, nM=MONTHS.length;
-  if(nB===0){
-    const svgH=CH+MG.top+MG.bottom;
-    d3.select('#chartSvg').attr('width',cW).attr('height',svgH).selectAll('*').remove();
-    d3.select('#chartSvg').append('text').attr('x',cW/2).attr('y',svgH/2)
-      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13).text('請選擇服務處');
-    document.getElementById('chartLegend').innerHTML=''; return;
-  }
-
-  const barW=5,grpPad=8, grpW=nB*(barW+1)+grpPad;
-  const svgW=Math.max(cW, MG.left+MG.right+nM*grpW+20);
-  const svgH=CH+MG.top+MG.bottom;
-
-  const maxV=d3.max(selB.flatMap(bi=>MONTHS.map((_,mi)=>m[bi]?.[mi]??0)))||1;
-  const xM=d3.scaleBand().domain(d3.range(nM)).range([MG.left,svgW-MG.right]).paddingInner(.12).paddingOuter(.05);
-  const xB=d3.scaleBand().domain(d3.range(nB)).range([0,xM.bandwidth()]).padding(.06);
-  const y=d3.scaleLinear().domain([0,maxV*1.1]).range([svgH-MG.bottom,MG.top]).nice();
-
-  const svg=d3.select('#chartSvg').attr('width',svgW).attr('height',svgH);
-  svg.selectAll('*').remove();
-
-  svg.append('g').attr('class','grid').attr('transform',`translate(${MG.left},0)`)
-    .call(d3.axisLeft(y).tickSize(-(svgW-MG.left-MG.right)).tickFormat('').ticks(5));
-  svg.append('g').attr('class','axis').attr('transform',`translate(0,${svgH-MG.bottom})`)
-    .call(d3.axisBottom(xM).tickFormat(i=>MONTHS[i]).tickSize(0))
-    .call(g=>g.select('.domain').remove())
-    .selectAll('text').attr('transform','rotate(-38)').style('text-anchor','end').attr('dx','-5px').attr('dy','2px');
-  svg.append('g').attr('class','axis').attr('transform',`translate(${MG.left},0)`)
-    .call(d3.axisLeft(y).ticks(5).tickFormat(v=>METRIC==='close'?(v*100).toFixed(0)+'%':METRIC==='days'?v+'天':v.toLocaleString()))
-    .call(g=>g.select('.domain').remove());
-
-  d3.range(nM).forEach(mi=>{
-    const g=svg.append('g').attr('transform',`translate(${xM(mi)},0)`);
-    selB.forEach((bi,si)=>{
-      const v=m[bi]?.[mi]??0, yv=y(v), bh=Math.max((svgH-MG.bottom)-yv,0);
-      const color=PAL[bi%PAL.length];
-      const isHL=highlightEntity!==null;
-      const rect=g.append('rect').attr('class','bar')
-        .attr('x',xB(si)).attr('y',svgH-MG.bottom)
-        .attr('width',xB.bandwidth()).attr('height',0)
-        .attr('fill',color).attr('rx',1)
-        .style('opacity',isHL?(highlightEntity===bi?1:.2):1)
-        .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name:allNames[bi],v,color}]))
-        .on('mouseleave',hideTip)
-        .on('click',()=>setHL(bi));
-      gsap.to(rect.node(),{ attr:{y:yv,height:bh}, duration:.5, delay:(mi*nB+si)*.003, ease:'power2.out' });
-    });
+function parseRitual(json){
+  const rows=json.table.rows.map(rowVals);
+  const title=String(rows[0]?.[0]||'當月禮儀師接案統計');
+  const people=[];
+  rows.forEach(r=>{
+    const branch=String(r[0]||''), name=String(r[1]||'');
+    if(!branch||!name||branch==='服務處'||name==='禮儀師'||branch.includes('小計')) return;
+    people.push({branch,name,y2025:num(r[2]),y2026:num(r[3]),total:num(r[4])});
   });
-
-  buildLegend(selB.map(bi=>({name:allNames[bi],color:PAL[bi%PAL.length],type:'bar',idx:bi})));
+  const branchTotals=d3.rollups(people,v=>({y2025:d3.sum(v,d=>d.y2025),y2026:d3.sum(v,d=>d.y2026),total:d3.sum(v,d=>d.total),count:v.length}),d=>d.branch)
+    .map(([branch,vals])=>({branch,...vals}));
+  return {title,people,branchTotals,branches:[...new Set(people.map(d=>d.branch))]};
 }
 
-/* ── LINE CHART ── */
-function drawLine(d, cW) {
-  const m=mat();
-  const idxs=[...selectedRituals];
-  const svgW=Math.max(cW,MG.left+MG.right+600);
-  const svgH=CH+MG.top+MG.bottom;
+function renderAll(){
+  renderAnnualKpis();renderMonthKpis();renderMonthTabs();renderServiceKpis();renderServiceDrop();renderRitualControls();renderRitualKpis();renderRitualTable();
+  drawPlaceholder('#annualChart','捲動至區塊後繪製履約狀態總覽');
+  drawPlaceholder('#monthChart','捲動至區塊後繪製當月履約狀態');
+  drawPlaceholder('#serviceChart','捲動至區塊後繪製服務處趨勢');
+  drawPlaceholder('#ritualChart','捲動至區塊後繪製禮儀師排行');
+  setupScroll();
+}
+function renderError(msg){
+  ['annualKpis','monthKpis','serviceKpis','ritualKpis'].forEach(id=>document.getElementById(id).innerHTML=`<div class="kpi"><div class="lbl">資料載入失敗</div><div class="val">—</div><div class="sub">${msg}</div></div>`);
+  ['#annualChart','#monthChart','#serviceChart','#ritualChart'].forEach(sel=>drawPlaceholder(sel,'Google Sheets 資料讀取失敗'));
+}
 
-  const svg=d3.select('#chartSvg').attr('width',svgW).attr('height',svgH);
-  svg.selectAll('*').remove();
+function statusSumForYear(year){return Object.fromEntries(STATUSES.map(s=>[s,d3.sum(DATA.annual,d=>d.data[year][s])]))}
+function renderAnnualKpis(){
+  if(!DATA.annual)return;
+  const cards=DATA.annual.map(d=>{
+    const total=d3.sum(STATUSES,s=>d.data[annualYear][s]);
+    return [d.area,total,`原購 ${fmt(d.data[annualYear]['原購'])} / 轉約 ${fmt(d.data[annualYear]['轉約'])} / 非契約 ${fmt(d.data[annualYear]['非契約件'])}`];
+  });
+  renderKpis('#annualKpis',cards,'annual');
+}
+function renderMonthKpis(){
+  if(!DATA.month)return;
+  const rows=monthRows();
+  const y25=d3.sum(rows,d=>d.y2025), y26=d3.sum(rows,d=>d.y2026);
+  const yoy=y25?((y26-y25)/y25*100):0;
+  $('#monthContractTitle').textContent=`${DATA.month.title} 2025 / 2026 使用狀態比較`;
+  renderKpis('#monthKpis',[[`${DATA.month.title} 2026`,y26,monthStatus==='全部'?'全部使用狀態':monthStatus],[`${DATA.month.title} 2025`,y25,'去年同期'],['YOY',yoy,`${yoy>=0?'+':''}${yoy.toFixed(1)}%`],['差異',y26-y25,'2026 - 2025']],'month',true);
+}
+function renderServiceKpis(){
+  if(!DATA.service)return;
+  const idxs=[...selectedServices], cur=idxs.map(i=>DATA.service.values[i]?.[monthIdx]||0), prev=monthIdx>0?idxs.map(i=>DATA.service.values[i]?.[monthIdx-1]||0):[];
+  const total=d3.sum(cur), prevTotal=d3.sum(prev), mom=prevTotal?((total-prevTotal)/prevTotal*100):0;
+  let max={name:'—',v:-Infinity},min={name:'—',v:Infinity};
+  idxs.forEach(i=>{const v=DATA.service.values[i]?.[monthIdx]||0;if(v>max.v)max={name:DATA.service.names[i],v};if(v<min.v)min={name:DATA.service.names[i],v}});
+  renderKpis('#serviceKpis',[[`${MONTHS[monthIdx]} 合計`,total,'所選服務處接案量'],['MOM',mom,`${mom>=0?'+':''}${mom.toFixed(1)}%`],['最高',max.v,max.name],['最低',min.v,min.name]],'service',true);
+}
+function renderRitualKpis(){
+  if(!DATA.ritual)return;
+  const rows=ritualRows(), total=d3.sum(rows,d=>d[ritualMetric]), avg=rows.length?total/rows.length:0, top=rows.slice().sort((a,b)=>b[ritualMetric]-a[ritualMetric])[0];
+  const bt=ritualBranch==='全部'?DATA.ritual.branchTotals.slice().sort((a,b)=>b[ritualMetric]-a[ritualMetric])[0]:DATA.ritual.branchTotals.find(d=>d.branch===ritualBranch);
+  renderKpis('#ritualKpis',[[metricLabel(),total,ritualBranch==='全部'?'全部服務處':ritualBranch],['平均',avg,'每位禮儀師'],['最高禮儀師',top?.[ritualMetric]||0,top?.name||'—'],['服務處小計',bt?.[ritualMetric]||0,bt?.branch||'—']],'ritual',true);
+}
+function renderKpis(sel,cards,key,allowDecimal=false){
+  const prev=prevKpi[key]||[];
+  document.querySelector(sel).innerHTML=cards.map((c,i)=>`<div class="kpi"><div class="lbl">${c[0]}</div><div class="val" data-i="${i}">0</div><div class="sub">${c[2]}</div></div>`).join('');
+  document.querySelectorAll(`${sel} .val`).forEach((el,i)=>countTo(el,prev[i]??0,cards[i][1],allowDecimal&&Math.abs(cards[i][1])<100&&String(cards[i][0]).includes('MOM')));
+  prevKpi[key]=cards.map(c=>c[1]);
+}
+function countTo(el,from,to,decimal=false){
+  if(typeof to!=='number'){el.textContent=to;return}
+  const obj={v:from};
+  gsap.to(obj,{v:to,duration:.65,ease:'power2.out',onUpdate:()=>{el.textContent=decimal?obj.v.toFixed(1)+'%':fmt(obj.v)},onComplete:()=>{el.textContent=decimal?to.toFixed(1)+'%':fmt(to)}});
+}
 
-  if(idxs.length===0){
-    svg.append('text').attr('x',svgW/2).attr('y',svgH/2)
-      .attr('text-anchor','middle').attr('fill','#3e4a62').attr('font-size',13).text('請從右上角選擇禮儀師');
-    document.getElementById('chartLegend').innerHTML='';
-    prevRitualIdxs=new Set(); return;
-  }
+function setAnnualYear(y){annualYear=y;$$('#annualYearSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.year===y));renderAnnualKpis();transitionDraw('#annualChart',()=>drawAnnual(),'annual')}
+function setMonthStatus(s){monthStatus=s;renderMonthKpis();transitionDraw('#monthChart',()=>drawMonthContract(),'month')}
+function setMonth(i){monthIdx=i;renderMonthTabs();renderServiceKpis();transitionDraw('#serviceChart',()=>drawServiceTrend(),'service')}
+function setRitualBranch(b){ritualBranch=b;renderRitualKpis();transitionDraw('#ritualChart',()=>drawRitualRank(),'ritual');renderRitualTable()}
+function setRitualMetric(m){ritualMetric=m;$$('#ritualMetricSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.metric===m));renderRitualKpis();transitionDraw('#ritualChart',()=>drawRitualRank(),'ritual');renderRitualTable()}
+function monthRows(){return monthStatus==='全部'?DATA.month.items.map(d=>d):DATA.month.items.filter(d=>d.status===monthStatus)}
+function serviceColor(i){return PAL[i%PAL.length]}
+function metricLabel(){return ritualMetric==='y2025'?'2025 件數':ritualMetric==='y2026'?'2026 件數':'合計件數'}
+function ritualRows(){return DATA.ritual.people.filter(d=>ritualBranch==='全部'||d.branch===ritualBranch)}
 
-  const allV=idxs.flatMap(i=>MONTHS.map((_,mi)=>m[i]?.[mi]??0)).filter(v=>v>=0);
-  const maxV=d3.max(allV)||1;
-  const x=d3.scalePoint().domain(d3.range(MONTHS.length)).range([MG.left,svgW-MG.right]).padding(.3);
-  const y=d3.scaleLinear().domain([0,maxV*1.1]).range([svgH-MG.bottom,MG.top]).nice();
-
-  svg.append('g').attr('class','grid').attr('transform',`translate(${MG.left},0)`)
-    .call(d3.axisLeft(y).tickSize(-(svgW-MG.left-MG.right)).tickFormat('').ticks(5));
-  svg.append('g').attr('class','axis').attr('transform',`translate(0,${svgH-MG.bottom})`)
-    .call(d3.axisBottom(x).tickFormat(i=>MONTHS[i]).tickSize(0))
-    .call(g=>g.select('.domain').remove())
-    .selectAll('text').attr('transform','rotate(-38)').style('text-anchor','end').attr('dx','-5px').attr('dy','2px');
-  svg.append('g').attr('class','axis').attr('transform',`translate(${MG.left},0)`)
-    .call(d3.axisLeft(y).ticks(5).tickFormat(v=>METRIC==='close'?(v*100).toFixed(0)+'%':METRIC==='days'?v+'天':v.toLocaleString()))
-    .call(g=>g.select('.domain').remove());
-
-  const defs=svg.append('defs');
-  const line=d3.line().x((_,mi)=>x(mi)).y(v=>y(v)).defined(v=>v>=0).curve(d3.curveMonotoneX);
-  const xL=MG.left, xR=svgW-MG.right, totalW=xR-xL;
-
+function drawAnnual(){
+  if(!DATA.annual)return;revealed.annual=true;
+  const data=DATA.annual.map(d=>({area:d.area,...d.data[annualYear]}));
+  $('#annualLegend').innerHTML=STATUSES.map(s=>`<span class="legend-item"><span class="sw" style="background:${STATUS_COLORS[s]}"></span>${s}</span>`).join('');
+  const w=Math.max($('#secAnnual .chart-wrap').clientWidth,760),h=360,m={t:18,r:20,b:45,l:58};
+  const svg=d3.select('#annualChart').attr('width',w).attr('height',h).html('');
+  const stack=d3.stack().keys(STATUSES)(data);
+  const x=d3.scaleBand().domain(data.map(d=>d.area)).range([m.l,w-m.r]).padding(.25);
+  const y=d3.scaleLinear().domain([0,d3.max(data,d=>d3.sum(STATUSES,s=>d[s]))*1.12]).nice().range([h-m.b,m.t]);
+  addAxes(svg,x,y,w,h,m);
+  const groups=svg.selectAll('.stack').data(stack).enter().append('g').attr('fill',d=>STATUS_COLORS[d.key]);
+  const bars=groups.selectAll('rect').data(d=>d.map(v=>({...v,key:d.key}))).enter().append('rect')
+    .attr('x',d=>x(d.data.area)).attr('width',x.bandwidth()).attr('y',y(0)).attr('height',0).attr('rx',3)
+    .on('mousemove',(e,d)=>showTip(e,d.data.area,[{name:d.key,v:d.data[d.key],color:STATUS_COLORS[d.key]}])).on('mouseleave',hideTip);
+  bars.each((d,i,n)=>gsap.to(n[i],{attr:{y:y(d[1]),height:y(d[0])-y(d[1])},duration:.65,delay:i*.03,ease:'power2.out'}));
+}
+function drawMonthContract(){
+  if(!DATA.month)return;revealed.month=true;
+  const byArea=d3.rollups(monthRows(),v=>({y2025:d3.sum(v,d=>d.y2025),y2026:d3.sum(v,d=>d.y2026)}),d=>d.area).map(([area,v])=>({area,...v}));
+  const w=Math.max($('#secMonth .chart-wrap').clientWidth,760),h=360,m={t:18,r:20,b:45,l:58};
+  const svg=d3.select('#monthChart').attr('width',w).attr('height',h).html('');
+  const x=d3.scaleBand().domain(byArea.map(d=>d.area)).range([m.l,w-m.r]).padding(.22);
+  const x2=d3.scaleBand().domain(['y2025','y2026']).range([0,x.bandwidth()]).padding(.1);
+  const y=d3.scaleLinear().domain([0,d3.max(byArea,d=>Math.max(d.y2025,d.y2026))*1.15]).nice().range([h-m.b,m.t]);
+  addAxes(svg,x,y,w,h,m);
+  const bars=svg.append('g').selectAll('rect').data(byArea.flatMap(d=>['y2025','y2026'].map(k=>({area:d.area,key:k,v:d[k]})))).enter().append('rect')
+    .attr('x',d=>x(d.area)+x2(d.key)).attr('width',x2.bandwidth()).attr('y',y(0)).attr('height',0).attr('rx',3).attr('fill',d=>d.key==='y2026'?COLORS.gold:COLORS.red2)
+    .on('mousemove',(e,d)=>showTip(e,d.area,[{name:d.key==='y2026'?'2026':'2025',v:d.v,color:d.key==='y2026'?COLORS.gold:COLORS.red2}])).on('mouseleave',hideTip);
+  bars.each((d,i,n)=>gsap.to(n[i],{attr:{y:y(d.v),height:y(0)-y(d.v)},duration:.6,delay:i*.03,ease:'power2.out'}));
+}
+function drawServiceTrend(){
+  if(!DATA.service)return;revealed.service=true;
+  const idxs=[...selectedServices].sort((a,b)=>a-b),w=Math.max($('#secService .chart-wrap').clientWidth,900),h=380,m={t:22,r:26,b:72,l:58};
+  const svg=d3.select('#serviceChart').attr('width',w).attr('height',h).html('');
+  if(!idxs.length){drawPlaceholder('#serviceChart','請至少選擇一個服務處');return}
+  const max=d3.max(idxs.flatMap(i=>DATA.service.values[i]))||1;
+  const x=d3.scalePoint().domain(d3.range(MONTHS.length)).range([m.l,w-m.r]).padding(.35);
+  const y=d3.scaleLinear().domain([0,max*1.12]).nice().range([h-m.b,m.t]);
+  addAxes(svg,x,y,w,h,m,i=>MONTHS[i]);
+  const line=d3.line().x((_,i)=>x(i)).y(v=>y(v)).curve(d3.curveMonotoneX);
   idxs.forEach((idx,ci)=>{
-    const name=d.names[idx];
-    const vals=MONTHS.map((_,mi)=>m[idx]?.[mi]??0);
-    const color=PAL[ci%PAL.length];
-    const dim=highlightEntity!==null && highlightEntity!==idx;
-    const isNew=cfdNewlyAdded===idx;
-    const wasRendered=prevRitualIdxs.has(idx) && !isNew;
-
-    const lineGrp=svg.append('g').attr('data-line-idx',idx);
-
-    const path=lineGrp.append('path')
-      .attr('class','line-path'+(dim?' dimmed':''))
-      .attr('d',line(vals)).attr('stroke',color).attr('stroke-width',1.8)
-      .on('mousemove',evt=>{
-        const bnd=document.getElementById('chartSvg').getBoundingClientRect();
-        const step=(svgW-MG.left-MG.right)/(MONTHS.length-1);
-        const mi=Math.max(0,Math.min(MONTHS.length-1,Math.round((evt.clientX-bnd.left-MG.left)/step)));
-        showTip(evt,MONTHS[mi],[{name,v:vals[mi],color}]);
-      })
-      .on('mouseleave',hideTip)
-      .on('click',()=>setHL(idx));
-
-    if(isNew){
-      // Clip path: rect starts at right edge, expands leftward → right-to-left wipe
-      const clipId=`clip-${idx}`;
-      defs.append('clipPath').attr('id',clipId)
-        .append('rect').attr('x',xR).attr('y',0).attr('width',0).attr('height',svgH);
-      path.attr('clip-path',`url(#${clipId})`);
-      gsap.to(defs.select(`#${clipId} rect`).node(),{
-        attr:{x:xL,width:totalW}, duration:1.0, ease:'power2.inOut'
-      });
-      // Dots: pop in right-to-left
-      vals.forEach((v,mi)=>{ if(v<0)return;
-        const dot=lineGrp.append('circle')
-          .attr('class','dot-circle'+(dim?' dimmed':''))
-          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
-          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
-          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
-          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
-        gsap.from(dot.node(),{ scale:0, svgOrigin:`${x(mi)} ${y(v)}`,
-          duration:.35, delay:0.1+(MONTHS.length-1-mi)*0.045, ease:'elastic.out(1,.5)' });
-      });
-    } else if(!wasRendered){
-      // Standard left-to-right dashoffset
-      const pn=path.node(), len=pn.getTotalLength();
-      path.attr('stroke-dasharray',len).attr('stroke-dashoffset',len);
-      gsap.to(pn,{ attr:{'stroke-dashoffset':0}, duration:1.2, delay:ci*.1, ease:'power2.inOut' });
-      vals.forEach((v,mi)=>{ if(v<0)return;
-        const dot=lineGrp.append('circle')
-          .attr('class','dot-circle'+(dim?' dimmed':''))
-          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
-          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
-          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
-          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
-        gsap.from(dot.node(),{ scale:0, svgOrigin:`${x(mi)} ${y(v)}`,
-          duration:.4, delay:1.2+ci*.1+mi*.018, ease:'elastic.out(1,.5)' });
-      });
-    } else {
-      // Was rendered previously: instant (no animation)
-      vals.forEach((v,mi)=>{ if(v<0)return;
-        lineGrp.append('circle')
-          .attr('class','dot-circle'+(dim?' dimmed':''))
-          .attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5)
-          .attr('fill',color).attr('stroke','#0a0d14').attr('stroke-width',1.2)
-          .on('mousemove',evt=>showTip(evt,MONTHS[mi],[{name,v,color}]))
-          .on('mouseleave',hideTip).on('click',()=>setHL(idx));
-      });
-    }
+    const vals=DATA.service.values[idx], color=serviceColor(idx), dim=serviceHighlighted!==null&&serviceHighlighted!==idx;
+    const path=svg.append('path').datum(vals).attr('fill','none').attr('stroke',color).attr('stroke-width',2).attr('opacity',dim?.18:1).attr('d',line)
+      .style('cursor','pointer').on('click',()=>{serviceHighlighted=serviceHighlighted===idx?null:idx;drawServiceTrend()})
+      .on('mousemove',(e)=>{const p=d3.pointer(e,svg.node())[0];const step=(w-m.l-m.r)/(MONTHS.length-1);const mi=Math.max(0,Math.min(MONTHS.length-1,Math.round((p-m.l)/step)));showTip(e,MONTHS[mi],[{name:DATA.service.names[idx],v:vals[mi],color}])}).on('mouseleave',hideTip);
+    const node=path.node(),len=node.getTotalLength();path.attr('stroke-dasharray',len).attr('stroke-dashoffset',len);gsap.to(node,{attr:{'stroke-dashoffset':0},duration:1.2,delay:ci*.08,ease:'power2.inOut'});
+    vals.forEach((v,mi)=>{const dot=svg.append('circle').attr('cx',x(mi)).attr('cy',y(v)).attr('r',3.5).attr('fill',color).attr('stroke','#0a0d14').attr('opacity',dim?.18:1).style('cursor','pointer').on('mousemove',e=>showTip(e,MONTHS[mi],[{name:DATA.service.names[idx],v,color}])).on('mouseleave',hideTip);gsap.from(dot.node(),{scale:0,svgOrigin:`${x(mi)} ${y(v)}`,duration:.35,delay:1.05+ci*.05+mi*.015,ease:'elastic.out(1,.5)'})});
   });
-
-  prevRitualIdxs=new Set(idxs);
-  buildLegend(idxs.map((idx,ci)=>({name:d.names[idx],color:PAL[ci%PAL.length],type:'line',idx})));
+  $('#serviceLegend').innerHTML=idxs.map(i=>`<span class="legend-item" onclick="serviceHighlighted=${i};drawServiceTrend()"><span class="line-sw" style="background:${serviceColor(i)}"></span>${DATA.service.names[i]}</span>`).join('');
 }
-
-function buildLegend(items) {
-  document.getElementById('chartLegend').innerHTML=items.map(it=>
-    `<div class="leg-item" onclick="setHL(${it.idx})">
-      <div class="${it.type==='line'?'leg-line':'leg-dot'}" style="background:${it.color}"></div>
-      <span>${it.name}</span>
-    </div>`
-  ).join('');
+function drawRitualRank(){
+  if(!DATA.ritual)return;revealed.ritual=true;
+  const rows=ritualRows().slice().sort((a,b)=>b[ritualMetric]-a[ritualMetric]).slice(0,40);
+  const w=Math.max($('#secRitual .chart-wrap').clientWidth,850), rowH=24, h=Math.max(330,rows.length*rowH+60),m={t:18,r:30,b:32,l:118};
+  const svg=d3.select('#ritualChart').attr('width',w).attr('height',h).html('');
+  const x=d3.scaleLinear().domain([0,d3.max(rows,d=>d[ritualMetric])||1]).nice().range([m.l,w-m.r]);
+  const y=d3.scaleBand().domain(rows.map(d=>d.name)).range([m.t,h-m.b]).padding(.22);
+  const branchColor=d3.scaleOrdinal().domain(DATA.ritual.branches).range(PAL);
+  svg.append('g').attr('class','grid').attr('transform',`translate(0,0)`).call(d3.axisTop(x).tickSize(-(h-m.t-m.b)).tickFormat('').ticks(5));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${h-m.b})`).call(d3.axisBottom(x).ticks(5)).call(g=>g.select('.domain').remove());
+  svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).tickSize(0)).call(g=>g.select('.domain').remove());
+  const bars=svg.selectAll('rect').data(rows).enter().append('rect').attr('x',m.l).attr('y',d=>y(d.name)).attr('width',0).attr('height',y.bandwidth()).attr('rx',3).attr('fill',d=>branchColor(d.branch))
+    .on('mousemove',(e,d)=>showTip(e,d.name,[{name:d.branch,v:d[ritualMetric],color:branchColor(d.branch)}])).on('mouseleave',hideTip);
+  bars.each((d,i,n)=>gsap.to(n[i],{attr:{width:x(d[ritualMetric])-m.l},duration:.55,delay:i*.018,ease:'power2.out'}));
 }
-function setHL(idx){ highlightEntity=highlightEntity===idx?null:idx; renderChart(); }
-
-/* ══════ TOOLTIP ══════ */
-const TIP=document.getElementById('d3tip');
-function showTip(evt,title,rows){
-  TIP.innerHTML=`<div class="d3-tip-title">${title}</div>`+
-    rows.map(r=>`<div class="d3-tip-row"><div class="d3-tip-sw" style="background:${r.color}"></div><div class="d3-tip-name">${r.name}</div><div class="d3-tip-val">${fmt(r.v)}</div></div>`).join('');
-  TIP.classList.add('show'); posTip(evt);
+function addAxes(svg,x,y,w,h,m,xfmt=d=>d){
+  svg.append('g').attr('class','grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).tickSize(-(w-m.l-m.r)).tickFormat('').ticks(5));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${h-m.b})`).call(d3.axisBottom(x).tickFormat(xfmt).tickSize(0)).call(g=>g.select('.domain').remove()).selectAll('text').attr('transform','rotate(-32)').style('text-anchor','end').attr('dx','-5px').attr('dy','3px');
+  svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5)).call(g=>g.select('.domain').remove());
 }
-function hideTip(){ TIP.classList.remove('show'); }
-function posTip(e){
-  const W=window.innerWidth,H=window.innerHeight;
-  let l=e.clientX+14,t=e.clientY-10;
-  if(l+240>W) l=e.clientX-245;
-  if(t+110>H) t=e.clientY-110;
-  TIP.style.left=l+'px'; TIP.style.top=t+'px';
+function drawPlaceholder(sel,text){const w=Math.max(document.querySelector(sel)?.parentElement?.clientWidth||760,320),h=280;d3.select(sel).attr('width',w).attr('height',h).html('').append('text').attr('x',w/2).attr('y',h/2).attr('fill','#4f5b73').attr('font-size',13).attr('text-anchor','middle').text(text)}
+function transitionDraw(sel,fn,key){if(key&&!revealed[key])return;const node=document.querySelector(sel);gsap.to(node,{scale:.985,opacity:.25,duration:.16,ease:'power2.in',onComplete:()=>{fn();gsap.fromTo(node,{scale:.985,opacity:.25},{scale:1,opacity:1,duration:.25,ease:'power2.out'})}})}
+
+function renderMonthTabs(){document.getElementById('monthTabs').innerHTML=MONTHS.map((m,i)=>`<button class="mo-btn${i===monthIdx?' active':''}" onclick="setMonth(${i})">${m}</button>`).join('')}
+function renderServiceDrop(){
+  if(!DATA.service)return;
+  $('#serviceDropText').textContent=selectedServices.size===DATA.service.names.length?'全部服務處':`已選 ${selectedServices.size} 個服務處`;
+  const q=($('#serviceSearch')?.value||'').trim().toLowerCase();
+  const all=selectedServices.size===DATA.service.names.length;
+  $('#serviceDropList').innerHTML=(!q?`<div class="drop-item ${all?'checked':''}" onclick="toggleAllServices()"><span class="cb">${all?'✓':''}</span>全選</div>`:'')+
+    DATA.service.names.map((name,i)=>({name,i})).filter(d=>!q||d.name.toLowerCase().includes(q)).map(d=>`<div class="drop-item ${selectedServices.has(d.i)?'checked':''}" onclick="toggleService(${d.i})"><span class="cb">${selectedServices.has(d.i)?'✓':''}</span>${d.name}</div>`).join('');
 }
-document.addEventListener('mousemove',e=>{ if(TIP.classList.contains('show')) posTip(e); });
+function toggleAllServices(){selectedServices.size===DATA.service.names.length?selectedServices.clear():DATA.service.names.forEach((_,i)=>selectedServices.add(i));renderServiceDrop();renderServiceKpis();transitionDraw('#serviceChart',()=>drawServiceTrend(),'service')}
+function toggleService(i){selectedServices.has(i)?selectedServices.delete(i):selectedServices.add(i);renderServiceDrop();renderServiceKpis();transitionDraw('#serviceChart',()=>drawServiceTrend(),'service')}
+function toggleDrop(){serviceDropOpen=!serviceDropOpen;const p=$('#serviceDropPanel');if(serviceDropOpen){p.classList.add('open');renderServiceDrop();gsap.fromTo(p,{scaleY:0,opacity:0},{scaleY:1,opacity:1,duration:.2,ease:'power2.out',transformOrigin:'top right'});setTimeout(()=>$('#serviceSearch')?.focus(),50)}else closeServiceDrop()}
+function closeServiceDrop(){serviceDropOpen=false;const p=$('#serviceDropPanel');gsap.to(p,{scaleY:0,opacity:0,duration:.15,ease:'power2.in',transformOrigin:'top right',onComplete:()=>p.classList.remove('open')})}
+document.addEventListener('click',e=>{if(serviceDropOpen&&!$('#serviceDrop').contains(e.target))closeServiceDrop()});
 
-/* ══════ TABLE ══════ */
-function renderTable() {
-  const d=ds(); if(!d) return;
-  const m=mat(), mi=MONTH_IDX;
-  const q=document.getElementById('searchBox').value.trim().toLowerCase();
-  document.getElementById('tableTitle').textContent=`${MONTHS[mi]} ${VIEW==='branch'?'服務處':'禮儀師'} ${mLabel()} 排行`;
-
-  let rows=d.names.map((name,i)=>({name,i,cur:m[i]?.[mi]??0,prev:mi>0?(m[i]?.[mi-1]??0):null})).filter(r=>r.cur>=0);
-  if(q) rows=rows.filter(r=>r.name.toLowerCase().includes(q));
-  // Filter by selection
-  if(VIEW==='branch') rows=rows.filter(r=>selectedBranches.has(r.i));
-  else if(selectedRituals.size>0) rows=rows.filter(r=>selectedRituals.has(r.i));
-
-  if(sortCol===0) rows.sort((a,b)=>sortDir*a.name.localeCompare(b.name,'zh'));
-  else if(sortCol===1) rows.sort((a,b)=>sortDir*(b.cur-a.cur));
-  else if(sortCol===2) rows.sort((a,b)=>sortDir*((b.prev!=null?b.cur-b.prev:-Infinity)-(a.prev!=null?a.cur-a.prev:-Infinity)));
-  else rows.sort((a,b)=>b.cur-a.cur);
-
-  const tot=rows.reduce((s,r)=>s+r.cur,0);
-  const thCls=c=>sortCol===c?(sortDir>0?' class="sa"':' class="sd"'):'';
-  const label=VIEW==='branch'?'服務處':'禮儀師';
-
-  const tbody=rows.map((r,rank)=>{
-    const chg=r.prev!=null?r.cur-r.prev:null;
-    const cs=chg==null?'—':METRIC==='close'?(chg>=0?'+':'')+(chg*100).toFixed(1)+'%':METRIC==='days'?(chg>=0?'+':'')+chg.toFixed(1)+'天':(chg>=0?'+':'')+Math.round(chg).toLocaleString();
-    const cc=chg==null?'':chg>0?'up':chg<0?'dn':'';
-    return `<tr><td>${rank+1}. ${r.name}</td><td class="hi">${fmt(r.cur)}</td><td class="${cc}">${cs}</td></tr>`;
-  }).join('');
-
-  document.getElementById('tableWrap').innerHTML=`
-    <table class="tbl"><thead><tr>
-      <th${thCls(0)} onclick="sortBy(0)">${label}</th>
-      <th${thCls(1)} onclick="sortBy(1)">${MONTHS[mi]} 值</th>
-      <th${thCls(2)} onclick="sortBy(2)">與上月差</th>
-    </tr></thead>
-    <tbody>${tbody||'<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text3)">無資料</td></tr>'}</tbody>
-    <tfoot><tr>
-      <td>合計 / 平均</td>
-      <td>${METRIC==='cases'?Math.round(tot).toLocaleString()+' 件':METRIC==='close'?(tot/Math.max(rows.length,1)*100).toFixed(1)+'%':(tot/Math.max(rows.length,1)).toFixed(1)+' 天'}</td>
-      <td>—</td>
-    </tr></tfoot></table>`;
+function renderRitualControls(){
+  if(!DATA.ritual)return;
+  $('#ritualTitle').textContent=DATA.ritual.title;
+  $('#ritualBranchSelect').innerHTML='<option value="全部">全部服務處</option>'+DATA.ritual.branches.map(b=>`<option value="${b}">${b}</option>`).join('');
+  $('#ritualBranchSelect').value=ritualBranch;
 }
-
-/* ══════════════════════════════
-   CHART FILTER DROPDOWN
-══════════════════════════════ */
-function getCFDSel()  { return VIEW==='branch' ? selectedBranches : selectedRituals; }
-function getCFDMax()  { return VIEW==='branch' ? Infinity : 20; }
-function getCFDUnit() { return VIEW==='branch' ? '個服務處' : '位禮儀師'; }
-
-function updateCFDBtn() {
-  const sel=getCFDSel(), d=ds(); if(!d) return;
-  const total=d.names.length, n=sel.size, max=getCFDMax();
-  let lbl;
-  if(n===0) lbl='請選擇';
-  else if(n>=Math.min(total,max)) lbl=VIEW==='branch'?'全部服務處':'全部禮儀師';
-  else lbl=`已選 ${n} ${getCFDUnit()}`;
-  document.getElementById('cfdBtnTxt').textContent=lbl;
-  document.getElementById('cfdBtn').classList.toggle('open',cfdOpen);
+function renderRitualTable(){
+  if(!DATA.ritual)return;
+  const q=($('#ritualSearch')?.value||'').trim().toLowerCase();
+  let rows=ritualRows().filter(d=>!q||d.name.toLowerCase().includes(q)||d.branch.toLowerCase().includes(q));
+  if(ritualSort==='name') rows.sort((a,b)=>ritualSortDir*a.name.localeCompare(b.name,'zh-Hant'));
+  else rows.sort((a,b)=>ritualSortDir*(a[ritualMetric]-b[ritualMetric]));
+  const total=d3.sum(rows,d=>d[ritualMetric]);
+  $('#ritualTableWrap').innerHTML=`<table><thead><tr><th onclick="sortRitual('name')">禮儀師</th><th>服務處</th><th onclick="sortRitual('value')">${metricLabel()}</th><th>2025</th><th>2026</th><th>合計</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}. ${r.name}</td><td>${r.branch}</td><td class="hi">${fmt(r[ritualMetric])}</td><td>${fmt(r.y2025)}</td><td>${fmt(r.y2026)}</td><td>${fmt(r.total)}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="2">合計</td><td>${fmt(total)}</td><td>${fmt(d3.sum(rows,d=>d.y2025))}</td><td>${fmt(d3.sum(rows,d=>d.y2026))}</td><td>${fmt(d3.sum(rows,d=>d.total))}</td></tr></tfoot></table>`;
 }
+function sortRitual(col){ritualSortDir=ritualSort===col?ritualSortDir*-1:(col==='value'?-1:1);ritualSort=col;renderRitualTable()}
 
-function renderCFDList() {
-  const d=ds(); if(!d) return;
-  const sel=getCFDSel(), max=getCFDMax();
-  const q=(document.getElementById('cfdSearch')?.value??'').trim().toLowerCase();
-  const list=document.getElementById('cfdList'); if(!list)return;
-  list.innerHTML='';
-
-  const items=d.names.map((name,i)=>({name,i})).filter(it=>!q||it.name.toLowerCase().includes(q));
-  const total=d.names.length;
-
-  // 全選 row (only when no search query active)
-  if(!q){
-    const allChk=sel.size>=Math.min(total,max);
-    const row=document.createElement('div');
-    row.className='cfd-item cfd-all'+(allChk?' checked':'');
-    row.innerHTML=`<span class="cfd-cb">${allChk?'✓':''}</span><span>全選</span>`;
-    row.onclick=()=>{
-      if(allChk){ sel.clear(); }
-      else { sel.clear(); d.names.forEach((_,i)=>{ if(sel.size<max)sel.add(i); }); }
-      afterCFDChange(); renderCFDList();
-    };
-    list.appendChild(row);
-  }
-
-  // Individual items
-  items.forEach(it=>{
-    const chk=sel.has(it.i);
-    const row=document.createElement('div');
-    row.className='cfd-item'+(chk?' checked':'');
-    row.innerHTML=`<span class="cfd-cb">${chk?'✓':''}</span><span>${it.name}</span>`;
-    row.onclick=()=>cfdToggleItem(it.i);
-    list.appendChild(row);
-  });
-
-  // Footer
-  const footer=document.getElementById('cfdFooter');
-  if(footer){
-    footer.style.color='';
-    footer.textContent=VIEW==='ritual'?`已選 ${sel.size} / 最多 20 位`:`已選 ${sel.size} / ${total}`;
-  }
-}
-
-function cfdToggleItem(idx) {
-  const sel=getCFDSel(), max=getCFDMax();
-
-  if(sel.has(idx)){
-    // REMOVE: animate line out, then re-render
-    if(VIEW==='ritual'){
-      const grp=document.querySelector(`[data-line-idx="${idx}"]`);
-      if(grp){
-        gsap.to(grp,{ opacity:0, duration:0.22, onComplete:()=>{
-          sel.delete(idx); prevRitualIdxs.delete(idx);
-          afterCFDChange(); renderCFDList();
-        }});
-        return;
-      }
-    }
-    sel.delete(idx);
-    afterCFDChange(); renderCFDList();
-  } else {
-    if(sel.size>=max){
-      const footer=document.getElementById('cfdFooter');
-      if(footer){
-        const orig=footer.textContent;
-        footer.textContent=`最多選 ${max} 位`; footer.style.color='#e05555';
-        setTimeout(()=>{ footer.textContent=orig; footer.style.color=''; },1800);
-      }
-      return;
-    }
-    sel.add(idx);
-    if(VIEW==='ritual') cfdNewlyAdded=idx;
-    afterCFDChange(); renderCFDList();
-    cfdNewlyAdded=null;
-  }
-}
-
-function afterCFDChange() {
-  prevKpi=[null,null,null,null];
-  updateCFDBtn();
-  renderKPI(); renderChart(); renderTable();
-}
-
-function toggleCFD(evt) {
-  evt?.stopPropagation();
-  cfdOpen=!cfdOpen;
-  const drop=document.getElementById('cfdDrop');
-  document.getElementById('cfdChev').classList.toggle('open',cfdOpen);
-
-  if(cfdOpen){
-    gsap.set(drop,{clearProps:'all'});
-    drop.style.display='block';
-    drop.classList.add('open');
-    renderCFDList();
-    gsap.fromTo(drop,{scaleY:0,opacity:0},{scaleY:1,opacity:1,duration:.2,ease:'power2.out',transformOrigin:'top right'});
-    setTimeout(()=>document.getElementById('cfdSearch')?.focus(),60);
-  } else {
-    gsap.to(drop,{ scaleY:0, opacity:0, duration:.15, ease:'power2.in', transformOrigin:'top right',
-      onComplete:()=>{ drop.classList.remove('open'); drop.style.display='none'; gsap.set(drop,{clearProps:'all'}); }
+function setupScroll(){
+  if(!window.ScrollTrigger||scrollReady)return;scrollReady=true;
+  [
+    ['#secAnnual',()=>drawAnnual(),'annual'],
+    ['#secMonth',()=>drawMonthContract(),'month'],
+    ['#secService',()=>drawServiceTrend(),'service'],
+    ['#secRitual',()=>drawRitualRank(),'ritual']
+  ].forEach(([sel,draw,key],idx)=>{
+    const el=document.querySelector(sel);gsap.set(el,{opacity:0,y:30});
+    ScrollTrigger.create({trigger:el,start:'top 85%',end:'top 10%',toggleActions:'play reverse play reverse',
+      onEnter:()=>{gsap.fromTo(el,{opacity:0,y:30},{opacity:1,y:0,duration:.6,ease:'power2.out'});if(!revealed[key])draw()},
+      onEnterBack:()=>{gsap.fromTo(el,{opacity:0,y:30},{opacity:1,y:0,duration:.6,ease:'power2.out'});if(!revealed[key])draw()},
+      onLeave:()=>gsap.to(el,{opacity:0,y:-20,duration:.4,ease:'power2.in'}),
+      onLeaveBack:()=>gsap.to(el,{opacity:0,y:-20,duration:.4,ease:'power2.in'})
     });
-  }
-  updateCFDBtn();
-}
-
-// Close on outside click
-document.addEventListener('click',e=>{
-  if(cfdOpen && !document.getElementById('cfdWrap')?.contains(e.target)){
-    cfdOpen=false;
-    document.getElementById('cfdChev').classList.remove('open');
-    const drop=document.getElementById('cfdDrop');
-    gsap.to(drop,{ scaleY:0, opacity:0, duration:.15, ease:'power2.in', transformOrigin:'top right',
-      onComplete:()=>{ drop.classList.remove('open'); drop.style.display='none'; gsap.set(drop,{clearProps:'all'}); }
-    });
-    updateCFDBtn();
-  }
-});
-
-/* ══════ CONTROLS ══════ */
-function switchView(v) {
-  VIEW=v; highlightEntity=null; sortCol=-1; sortDir=1;
-  prevRitualIdxs=new Set(); prevKpi=[null,null,null,null];
-  document.getElementById('vsBranch').classList.toggle('active',v==='branch');
-  document.getElementById('vsRitual').classList.toggle('active',v==='ritual');
-  document.getElementById('searchBox').value='';
-  const cc=document.getElementById('chartCard');
-  const dir=v==='ritual'?-50:50;
-  gsap.to(cc,{ x:dir, opacity:0, duration:.2, onComplete:()=>{
-    renderKPI(); renderChart(); renderTable();
-    gsap.fromTo(cc,{x:-dir,opacity:0},{x:0,opacity:1,duration:.3,ease:'power2.out'});
-  }});
-}
-
-function switchMetric(m) {
-  METRIC=m; highlightEntity=null; prevRitualIdxs=new Set(); prevKpi=[null,null,null,null];
-  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
-  const cc=document.getElementById('chartCard');
-  gsap.to(cc,{ scale:.97, opacity:0, duration:.15, onComplete:()=>{
-    renderKPI(); renderChart(); renderTable();
-    gsap.to(cc,{scale:1,opacity:1,duration:.25,ease:'power2.out'});
-  }});
-}
-
-function sortBy(c) {
-  sortDir=sortCol===c?sortDir*-1:(c===1?-1:1); sortCol=c; renderTable();
-}
-
-function applyAndLoad() {
-  const id=document.getElementById('inpId').value.trim();
-  if(!id){ alert('請輸入 Spreadsheet ID'); return; }
-  CFG.sheetId=id; localStorage.setItem('ly_sheetId',id);
-  selectedBranches.clear(); selectedRituals.clear(); prevRitualIdxs=new Set();
-  loadAll();
-}
-
-function toggleSettings() {
-  settingsOpen=!settingsOpen;
-  document.getElementById('stgArrow').classList.toggle('open',settingsOpen);
-  const p=document.getElementById('settingsPanel');
-  if(settingsOpen){ p.style.display='block'; gsap.from(p,{height:0,opacity:0,duration:.3,ease:'power2.out'}); }
-  else gsap.to(p,{height:0,opacity:0,duration:.2,onComplete:()=>{ p.style.display='none'; p.style.height=''; p.style.opacity=''; }});
-}
-
-/* ══════ UTILS ══════ */
-function setStatus(t,msg){ document.getElementById('dot').className='dot '+t; document.getElementById('statusTxt').textContent=msg; }
-function setSpin(on){ document.getElementById('syncBtn').classList.toggle('spin',on); }
-
-/* ══════ SCROLLTRIGGER REVEALS ══════ */
-function revealTween(targets, opts={}) {
-  const els=gsap.utils.toArray(targets).filter(Boolean);
-  if(!els.length) return null;
-  return gsap.fromTo(els,
-    {opacity:0,y:30},
-    {opacity:1,y:0,duration:0.6,ease:'power2.out',stagger:opts.stagger??0}
-  );
-}
-
-function setupScrollUnit(trigger, targets, opts={}) {
-  const el=document.querySelector(trigger);
-  const targetEls=gsap.utils.toArray(targets).filter(Boolean);
-  if(!el||!targetEls.length) return;
-  gsap.set(targetEls,{opacity:0,y:30});
-  const enter=()=>gsap.fromTo(targetEls,
-    {opacity:0,y:30},
-    {opacity:1,y:0,duration:0.6,ease:'power2.out',stagger:opts.stagger??0,overwrite:true}
-  );
-  const leave=()=>gsap.to(targetEls,
-    {opacity:0,y:-20,duration:0.4,ease:'power2.in',stagger:opts.stagger??0,overwrite:true}
-  );
-  ScrollTrigger.create({
-    trigger:el,
-    start:'top 85%',
-    end:'top 10%',
-    toggleActions:'play reverse play reverse',
-    onEnter:enter,
-    onLeave:leave,
-    onEnterBack:enter,
-    onLeaveBack:leave
   });
-}
-
-function setupChartScrollUnit() {
-  const card=document.getElementById('chartCard');
-  if(!card) return;
-  gsap.set(card,{opacity:0,y:30});
-  const enter=()=>{
-    if(!chartHasRevealed){
-      chartHasRevealed=true;
-      renderChart(true);
-    }
-    gsap.fromTo(card,{opacity:0,y:30},{opacity:1,y:0,duration:0.6,ease:'power2.out',overwrite:true});
-  };
-  const leave=()=>gsap.to(card,{opacity:0,y:-20,duration:0.4,ease:'power2.in',overwrite:true});
-  ScrollTrigger.create({
-    trigger:card,
-    start:'top 85%',
-    end:'top 10%',
-    toggleActions:'play reverse play reverse',
-    onEnter:enter,
-    onLeave:leave,
-    onEnterBack:enter,
-    onLeaveBack:leave
-  });
-}
-
-function animateTableRowsOnScroll() {
-  const card=document.querySelector('.table-card');
-  if(!card) return;
-  gsap.set(card,{opacity:0,y:30});
-  const enter=()=>{
-    gsap.fromTo(card,{opacity:0,y:30},{opacity:1,y:0,duration:0.6,ease:'power2.out',overwrite:true});
-    gsap.fromTo('#tableWrap tbody tr',{opacity:0,y:16},{opacity:1,y:0,duration:0.45,stagger:0.08,ease:'power2.out',overwrite:true});
-  };
-  const leave=()=>gsap.to(card,{opacity:0,y:-20,duration:0.4,ease:'power2.in',overwrite:true});
-  ScrollTrigger.create({
-    trigger:card,
-    start:'top 85%',
-    end:'top 10%',
-    toggleActions:'play reverse play reverse',
-    onEnter:enter,
-    onLeave:leave,
-    onEnterBack:enter,
-    onLeaveBack:leave
-  });
-}
-
-function setupScrollReveals() {
-  if(!window.ScrollTrigger) return;
-  if(scrollRevealsReady){
-    ScrollTrigger.refresh();
-    return;
-  }
-  scrollRevealsReady=true;
-
-  setupScrollUnit('.settings-toggle','.settings-toggle');
-  setupScrollUnit('.view-switch','.view-switch');
-  setupScrollUnit('.metric-tabs','.metric-tabs');
-  setupScrollUnit('#monthTabs','#monthTabs .mo-btn',{stagger:0.08});
-  setupScrollUnit('#kpiStrip','#kpiStrip .kpi',{stagger:0.08});
-  setupScrollUnit('#cfdWrap','#cfdWrap');
-  setupChartScrollUnit();
-  animateTableRowsOnScroll();
   ScrollTrigger.refresh();
 }
+function showTip(evt,title,rows){const tip=$('#tip');tip.innerHTML=`<div class="tip-title">${title}</div>`+rows.map(r=>`<div class="tip-row"><span class="sw" style="background:${r.color}"></span><span class="tip-name">${r.name}</span><span class="tip-val">${fmt(r.v)}</span></div>`).join('');tip.classList.add('show');posTip(evt)}
+function hideTip(){$('#tip').classList.remove('show')}
+function posTip(e){const tip=$('#tip'),W=innerWidth,H=innerHeight;let x=e.clientX+14,y=e.clientY-10;if(x+250>W)x=e.clientX-260;if(y+110>H)y=e.clientY-120;tip.style.left=x+'px';tip.style.top=y+'px'}
+document.addEventListener('mousemove',e=>{if($('#tip').classList.contains('show'))posTip(e)});
+function toggleSettings(){settingsOpen=!settingsOpen;$('#stgArrow').classList.toggle('open',settingsOpen);const p=$('#settingsPanel');if(settingsOpen){p.style.display='block';gsap.from(p,{height:0,opacity:0,duration:.25,ease:'power2.out'})}else gsap.to(p,{height:0,opacity:0,duration:.2,ease:'power2.in',onComplete:()=>{p.style.display='none';p.style.height='';p.style.opacity=''}})}
+function applyAndLoad(){const id=$('#inpId').value.trim();if(!id){alert('請輸入 Spreadsheet ID');return}CFG.sheetId=id;localStorage.setItem('ly_sheetId',id);selectedServices.clear();revealed={annual:false,month:false,service:false,ritual:false};scrollReady=false;ScrollTrigger.getAll().forEach(t=>t.kill());loadAll()}
+function setStatus(t,msg){$('#dot').className='dot '+t;$('#statusTxt').textContent=msg}
+function setSpin(on){$('#syncBtn').classList.toggle('spin',on)}
+function animEntry(){gsap.timeline({defaults:{ease:'power2.out'}}).from('.logo-box',{y:-26,opacity:0,duration:.45}).from('.brand-copy',{y:-18,opacity:0,duration:.35},'-=.25').from('.topbar-right',{y:-14,opacity:0,duration:.35},'-=.25').from('.settings-toggle',{opacity:0,duration:.25},'-=.1')}
 
-/* ══════ PAGE LOAD ANIMATION ══════ */
-function animEntry() {
-  const tl=gsap.timeline({defaults:{ease:'power2.out'}});
-  tl.from('.logo-box',{y:-28,opacity:0,duration:.5})
-    .from('.brand-text',{y:-20,opacity:0,duration:.4},'-=.3')
-    .from('.topbar-right',{y:-15,opacity:0,duration:.4},'-=.3');
-}
-
-/* ══════ INIT ══════ */
-if(CFG.sheetId) document.getElementById('inpId').value=CFG.sheetId;
-window.addEventListener('load',()=>{ loadAll().then(()=>animEntry()); });
+if(CFG.sheetId) $('#inpId').value=CFG.sheetId;
+window.addEventListener('load',()=>{animEntry();loadAll()});
 </script>
 </body>
 </html>
